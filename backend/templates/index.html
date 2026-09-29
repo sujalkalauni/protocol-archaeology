@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="light" id="html-root">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,23 +27,19 @@
               900: '#7c2d12',
             },
             surface: {
-              bg: '#fffaf6',
-              card: '#ffffff',
-              cardHover: '#fffdfb',
-              border: '#fae4d7',
-              borderLight: '#fdeee6',
-              textPrimary: '#292524',
-              textSecondary: '#57534e',
-              textMuted: '#78716c',
+              bg: 'var(--bg-color, #fffaf6)',
+              card: 'var(--card-color, #ffffff)',
+              cardHover: 'var(--card-hover, #fffdfb)',
+              border: 'var(--border-color, #fae4d7)',
+              borderLight: 'var(--border-light, #fdeee6)',
+              textPrimary: 'var(--text-primary, #292524)',
+              textSecondary: 'var(--text-secondary, #57534e)',
+              textMuted: 'var(--text-muted, #78716c)',
             }
           },
           fontFamily: {
             mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
             sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          },
-          backgroundImage: {
-            'peach-glow': "radial-gradient(circle at 50% -10%, rgba(251, 146, 60, 0.12), transparent 60%)",
-            'peach-grid': "radial-gradient(circle, rgba(234, 88, 12, 0.05) 1px, transparent 1px)",
           }
         }
       }
@@ -56,21 +52,52 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --bg-color: #fffaf6;
+      --card-color: #ffffff;
+      --card-hover: #fffdfb;
+      --border-color: #fae4d7;
+      --border-light: #fdeee6;
+      --text-primary: #292524;
+      --text-secondary: #57534e;
+      --text-muted: #78716c;
+    }
+    .theme-slate {
+      --bg-color: #f8fafc;
+      --card-color: #ffffff;
+      --card-hover: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-light: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+    }
+    .theme-midnight {
+      --bg-color: #0b0f19;
+      --card-color: #111827;
+      --card-hover: #172033;
+      --border-color: #1f293d;
+      --border-light: #2d3748;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+    }
+
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: #fffaf6;
-      color: #292524;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .font-mono {
       font-family: 'JetBrains Mono', Consolas, monospace;
     }
-    /* Custom Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #fffaf6;
+      background: var(--bg-color);
     }
     ::-webkit-scrollbar-thumb {
       background: #fed0b9;
@@ -79,7 +106,8 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #fba980;
     }
-    .bg-grid {
+    .bg-grid-pattern {
+      background-image: radial-gradient(circle, rgba(234, 88, 12, 0.05) 1px, transparent 1px);
       background-size: 24px 24px;
     }
     .soft-shadow {
@@ -88,14 +116,22 @@
     .soft-shadow-lg {
       box-shadow: 0 20px 35px -5px rgba(234, 88, 12, 0.09), 0 8px 16px -3px rgba(0, 0, 0, 0.03);
     }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .playback-active-node {
+      animation: pulse-ring 1.5s infinite ease-in-out;
+    }
   </style>
 </head>
-<body class="min-h-screen bg-surface-bg bg-peach-glow bg-peach-grid bg-grid text-surface-textPrimary antialiased selection:bg-peach-300 selection:text-peach-900">
+<body class="min-h-screen bg-grid-pattern antialiased selection:bg-peach-300 selection:text-peach-900">
   <div class="flex flex-col min-h-screen">
     
-    <!-- TOP PEACH & WHITE NAVBAR -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-surface-border px-4 lg:px-8 py-3 flex items-center justify-between soft-shadow">
-      <!-- Logo & Brand -->
+    <!-- TOP NAVBAR -->
+    <header class="sticky top-0 z-50 bg-surface-card/90 backdrop-blur-xl border-b border-surface-border px-4 lg:px-8 py-3 flex items-center justify-between soft-shadow transition-colors">
+      <!-- Logo and Title -->
       <div class="flex items-center gap-3.5">
         <div class="relative group cursor-pointer">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-peach-500 via-peach-400 to-amber-300 flex items-center justify-center shadow-lg shadow-peach-500/25 ring-2 ring-peach-200 group-hover:scale-105 transition-transform">
@@ -103,7 +139,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           </div>
-          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white"></div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-surface-card"></div>
         </div>
         <div>
           <div class="flex items-center gap-2">
@@ -121,27 +157,34 @@
       </div>
 
       <!-- VIEW SELECTOR TABS -->
-      <nav class="flex items-center bg-peach-50 p-1.5 rounded-2xl border border-surface-border shadow-inner">
+      <nav class="flex items-center bg-peach-50/70 p-1.5 rounded-2xl border border-surface-border shadow-inner">
         <button id="btn-tab-story" onclick="switchView('story')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-peach-500 to-peach-600 text-white shadow-md shadow-peach-500/20 transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
           <span>Story Narrative</span>
         </button>
-        <button id="btn-tab-flow" onclick="switchView('flow')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+        <button id="btn-tab-flow" onclick="switchView('flow')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-surface-card transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           <span>Sequence Flow</span>
         </button>
-        <button id="btn-tab-inspector" onclick="switchView('inspector')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+        <button id="btn-tab-inspector" onclick="switchView('inspector')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-surface-card transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
           <span>OSI Inspector</span>
         </button>
-        <button id="btn-tab-guide" onclick="switchView('guide')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+        <button id="btn-tab-guide" onclick="switchView('guide')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-surface-card transition-all">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <span>Protocol Guide</span>
         </button>
       </nav>
 
-      <!-- UPLOAD & ACTIONS -->
+      <!-- UPLOAD, THEME AND ACTIONS -->
       <div class="flex items-center gap-2">
+        <!-- Theme Switcher -->
+        <div class="flex items-center bg-peach-50/70 p-1 rounded-xl border border-surface-border">
+          <button onclick="setTheme('peach')" id="theme-btn-peach" title="Peach Light Theme" class="px-2 py-1 rounded-lg text-xs font-bold bg-white text-peach-700 shadow-sm border border-peach-200">Peach</button>
+          <button onclick="setTheme('slate')" id="theme-btn-slate" title="Minimal Slate Theme" class="px-2 py-1 rounded-lg text-xs font-medium text-surface-textMuted hover:text-surface-textPrimary">Slate</button>
+          <button onclick="setTheme('midnight')" id="theme-btn-midnight" title="Midnight Dark Theme" class="px-2 py-1 rounded-lg text-xs font-medium text-surface-textMuted hover:text-surface-textPrimary">Dark</button>
+        </div>
+
         <input type="file" id="file-input" accept=".pcap,.pcapng,.cap" class="hidden" onchange="handleFileInput(this.files[0])" />
         <button onclick="document.getElementById('file-input').click()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-peach-50 hover:bg-peach-100 text-peach-700 border border-peach-300 hover:border-peach-400 shadow-sm transition-all">
           <svg class="w-4 h-4 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -153,16 +196,39 @@
       </div>
     </header>
 
-    <!-- SCENARIOS SUB-HEADER -->
-    <section class="bg-white/80 border-b border-surface-border px-4 lg:px-8 py-2.5">
+    <!-- SCENARIOS AND PLAYBACK BAR -->
+    <section class="bg-surface-card border-b border-surface-border px-4 lg:px-8 py-2.5 transition-colors">
       <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 max-w-7xl mx-auto">
+        <!-- Preset Scenario Selector -->
         <div id="sample-buttons-container" class="flex items-center gap-2 overflow-x-auto max-w-full pb-1 lg:pb-0">
           <span class="text-[11px] font-bold text-peach-700 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
             Scenarios:
           </span>
         </div>
 
-        <div id="header-file-stats" class="flex items-center gap-2 text-xs text-surface-textSecondary shrink-0 font-mono"></div>
+        <!-- Interactive Playback Stepper Controller -->
+        <div class="flex items-center gap-2 bg-peach-50/80 px-3 py-1.5 rounded-2xl border border-surface-border text-xs font-mono">
+          <span class="text-[11px] font-bold text-surface-textMuted uppercase mr-1">Demo Controller:</span>
+          <button onclick="prevPacketStep()" title="Previous Packet" class="p-1 rounded-lg bg-surface-card hover:bg-peach-100 text-surface-textPrimary border border-surface-border">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button onclick="togglePlayback()" id="btn-playback-toggle" title="Play or Pause Simulation" class="px-2.5 py-1 rounded-lg bg-peach-500 hover:bg-peach-600 text-white font-bold flex items-center gap-1 shadow-sm">
+            <span id="playback-icon">&#9658;</span>
+            <span id="playback-text">Play</span>
+          </button>
+          <button onclick="nextPacketStep()" title="Next Packet" class="p-1 rounded-lg bg-surface-card hover:bg-peach-100 text-surface-textPrimary border border-surface-border">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <button onclick="resetPlayback()" title="Reset to Start" class="p-1 rounded-lg bg-surface-card hover:bg-peach-100 text-surface-textMuted hover:text-surface-textPrimary border border-surface-border">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+          <select id="playback-speed" onchange="setPlaybackSpeed(this.value)" class="bg-surface-card border border-surface-border rounded-lg text-[10px] px-1.5 py-1 font-bold text-surface-textPrimary focus:outline-none">
+            <option value="1200">1x Speed</option>
+            <option value="600">2x Speed</option>
+            <option value="300">4x Speed</option>
+          </select>
+          <div id="playback-counter" class="text-peach-800 font-bold px-1.5">Pkt #1</div>
+        </div>
       </div>
     </section>
 
@@ -184,47 +250,58 @@
         <!-- METRICS HERO CARDS -->
         <div id="metrics-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3"></div>
 
-        <!-- SECURITY & FORENSICS BANNER -->
-        <div id="security-audit-banner" class="rounded-3xl border border-surface-border bg-gradient-to-r from-white via-peach-50/50 to-white p-5 soft-shadow"></div>
+        <!-- TRAFFIC DISTRIBUTION AND PROTOCOL BREAKDOWN BAR -->
+        <div id="traffic-breakdown-card" class="bg-surface-card border border-surface-border rounded-3xl p-5 soft-shadow space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-surface-textPrimary uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+              Protocol Traffic and Volume Distribution
+            </h4>
+            <span id="traffic-total-bandwidth" class="text-xs font-mono font-bold text-peach-700">0 KB Total</span>
+          </div>
+
+          <!-- Segmented Visual Bar -->
+          <div id="traffic-segmented-bar" class="w-full h-3 bg-stone-100 rounded-full overflow-hidden flex shadow-inner"></div>
+
+          <!-- Protocol Legend Chips -->
+          <div id="traffic-legend-chips" class="flex flex-wrap gap-2 pt-1 text-xs"></div>
+        </div>
+
+        <!-- SECURITY AND FORENSICS BANNER -->
+        <div id="security-audit-banner" class="rounded-3xl border border-surface-border bg-gradient-to-r from-surface-card via-peach-50/40 to-surface-card p-5 soft-shadow"></div>
 
         <!-- VIEW 1: STORY NARRATIVE VIEW -->
         <div id="view-story" class="view-panel space-y-6">
-          <!-- Search & Filter Controls -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-surface-border soft-shadow">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-bold text-peach-700 uppercase tracking-wider flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                Filter:
-              </span>
-              <select id="chapter-filter" onchange="renderStoryCards()" class="bg-peach-50/50 border border-surface-border rounded-xl text-xs px-3 py-1.5 text-surface-textPrimary focus:outline-none focus:border-peach-400 transition-colors">
-                <option value="all">All 5 Chapters</option>
-                <option value="1">Chapter 1: Address Resolution (ARP/DNS)</option>
-                <option value="2">Chapter 2: Connection Setup (TCP Handshake)</option>
-                <option value="3">Chapter 3: Secure Exchange (TLS Negotiation)</option>
-                <option value="4">Chapter 4: Web Content Delivery (HTTP/Data)</option>
-                <option value="5">Chapter 5: Connection Teardown and Anomalies</option>
-              </select>
-
-              <select id="proto-filter" onchange="renderStoryCards()" class="bg-peach-50/50 border border-surface-border rounded-xl text-xs px-3 py-1.5 text-surface-textPrimary focus:outline-none focus:border-peach-400 transition-colors">
-                <option value="all">All Protocols</option>
-                <option value="DNS">DNS</option>
-                <option value="TLS">TLS</option>
-                <option value="HTTP">HTTP</option>
-                <option value="TCP">TCP</option>
-                <option value="ARP">ARP</option>
-                <option value="ICMP">ICMP</option>
-              </select>
+          <!-- Quick Filter Pills and Search Bar -->
+          <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-card p-4 rounded-3xl border border-surface-border soft-shadow">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-xs font-bold text-peach-700 uppercase tracking-wider mr-1">Quick Filters:</span>
+              <button onclick="setQuickFilter('all')" id="qf-all" class="qf-pill px-3 py-1 rounded-xl text-xs font-bold bg-peach-500 text-white shadow-sm">All</button>
+              <button onclick="setQuickFilter('anomalies')" id="qf-anomalies" class="qf-pill px-3 py-1 rounded-xl text-xs font-medium text-surface-textSecondary hover:bg-peach-50 border border-surface-border">Anomalies (RST)</button>
+              <button onclick="setQuickFilter('cleartext')" id="qf-cleartext" class="qf-pill px-3 py-1 rounded-xl text-xs font-medium text-surface-textSecondary hover:bg-peach-50 border border-surface-border">Cleartext (HTTP/DNS)</button>
+              <button onclick="setQuickFilter('handshakes')" id="qf-handshakes" class="qf-pill px-3 py-1 rounded-xl text-xs font-medium text-surface-textSecondary hover:bg-peach-50 border border-surface-border">Handshakes (SYN/TLS)</button>
             </div>
 
-            <div class="relative">
-              <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-peach-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input
-                type="text"
-                id="search-input"
-                oninput="renderStoryCards()"
-                placeholder="Search IPs, domains, URIs, payloads..."
-                class="bg-peach-50/50 border border-surface-border rounded-xl text-xs pl-9 pr-3 py-1.5 text-surface-textPrimary w-full sm:w-72 focus:outline-none focus:border-peach-400 transition-colors placeholder:text-surface-textMuted"
-              />
+            <div class="flex items-center gap-2">
+              <select id="chapter-filter" onchange="renderStoryCards()" class="bg-peach-50/50 border border-surface-border rounded-xl text-xs px-2.5 py-1.5 text-surface-textPrimary focus:outline-none">
+                <option value="all">All Chapters</option>
+                <option value="1">Chapter 1: Address Resolution</option>
+                <option value="2">Chapter 2: Connection Setup</option>
+                <option value="3">Chapter 3: Secure Exchange</option>
+                <option value="4">Chapter 4: Web Content Delivery</option>
+                <option value="5">Chapter 5: Connection Teardown</option>
+              </select>
+
+              <div class="relative">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-peach-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input
+                  type="text"
+                  id="search-input"
+                  oninput="renderStoryCards()"
+                  placeholder="Search packets, IPs, payloads..."
+                  class="bg-peach-50/50 border border-surface-border rounded-xl text-xs pl-9 pr-3 py-1.5 text-surface-textPrimary w-full sm:w-56 focus:outline-none focus:border-peach-400 placeholder:text-surface-textMuted"
+                />
+              </div>
             </div>
           </div>
 
@@ -233,7 +310,7 @@
         </div>
 
         <!-- VIEW 2: SEQUENCE FLOW LADDER VIEW -->
-        <div id="view-flow" class="view-panel hidden bg-white border border-surface-border rounded-3xl p-6 lg:p-8 space-y-6 soft-shadow-lg">
+        <div id="view-flow" class="view-panel hidden bg-surface-card border border-surface-border rounded-3xl p-6 lg:p-8 space-y-6 soft-shadow-lg">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-4">
             <div>
               <h3 class="text-lg font-bold text-surface-textPrimary flex items-center gap-2">
@@ -257,7 +334,7 @@
         <!-- VIEW 3: OSI INSPECTOR DESK -->
         <div id="view-inspector" class="view-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Left: Packet Stream List -->
-          <div class="lg:col-span-4 bg-white border border-surface-border rounded-3xl p-4 space-y-3 max-h-[820px] flex flex-col soft-shadow">
+          <div class="lg:col-span-4 bg-surface-card border border-surface-border rounded-3xl p-4 space-y-3 max-h-[820px] flex flex-col soft-shadow">
             <div class="flex items-center justify-between pb-2.5 border-b border-surface-border">
               <h3 class="text-sm font-bold text-surface-textPrimary flex items-center gap-2">
                 <svg class="w-4 h-4 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
@@ -271,13 +348,13 @@
             <div id="inspector-packet-list" class="overflow-y-auto space-y-2 flex-1 pr-1.5"></div>
           </div>
 
-          <!-- Right: Multi-Layer OSI Breakdown & Hex Terminal -->
+          <!-- Right: Multi-Layer OSI Breakdown and Hex Terminal -->
           <div id="inspector-desk-details" class="lg:col-span-8 space-y-4"></div>
         </div>
 
-        <!-- VIEW 4: PROTOCOL GUIDE & HANDBOOK -->
+        <!-- VIEW 4: PROTOCOL GUIDE AND HANDBOOK -->
         <div id="view-guide" class="view-panel hidden space-y-6">
-          <div class="bg-gradient-to-r from-white via-peach-50/70 to-white border border-surface-border rounded-3xl p-6 lg:p-8 soft-shadow">
+          <div class="bg-gradient-to-r from-surface-card via-peach-50/70 to-surface-card border border-surface-border rounded-3xl p-6 lg:p-8 soft-shadow">
             <div class="flex items-center gap-3 mb-2">
               <div class="w-10 h-10 rounded-2xl bg-peach-100 border border-peach-300 text-peach-700 flex items-center justify-center font-bold">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
@@ -291,10 +368,10 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Guide Card 1 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Layer 2 (Data Link)</span>
-                <span class="text-xs font-mono text-surface-textMuted">Ethernet & ARP</span>
+                <span class="text-xs font-mono text-surface-textMuted">Ethernet and ARP</span>
               </div>
               <h4 class="text-base font-bold text-surface-textPrimary">Address Resolution Protocol (ARP)</h4>
               <p class="text-xs text-surface-textSecondary leading-relaxed">
@@ -303,24 +380,24 @@
             </div>
 
             <!-- Guide Card 2 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Layer 7 (Application)</span>
                 <span class="text-xs font-mono text-surface-textMuted">UDP Port 53</span>
               </div>
               <h4 class="text-base font-bold text-surface-textPrimary">Domain Name System (DNS)</h4>
               <p class="text-xs text-surface-textSecondary leading-relaxed">
-                Resolves human-friendly domain names (e.g. <code>example.com</code>) into IP addresses (A/AAAA records). Unencrypted DNS over standard UDP 53 exposes queries to network eavesdropping.
+                Resolves human-friendly domain names into IP addresses (A/AAAA records). Unencrypted DNS over standard UDP 53 exposes queries to network eavesdropping.
               </p>
             </div>
 
             <!-- Guide Card 3 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-peach-50 text-peach-700 border border-peach-200">Layer 4 (Transport)</span>
                 <span class="text-xs font-mono text-surface-textMuted">TCP Handshake</span>
               </div>
-              <h4 class="text-base font-bold text-surface-textPrimary">TCP 3-Way Handshake & Reliability</h4>
+              <h4 class="text-base font-bold text-surface-textPrimary">TCP 3-Way Handshake and Reliability</h4>
               <p class="text-xs text-surface-textSecondary leading-relaxed">
                 Reliable stateful communication is established through:<br />
                 • <strong>SYN:</strong> Client requests connection and establishes Initial Sequence Number.<br />
@@ -330,7 +407,7 @@
             </div>
 
             <!-- Guide Card 4 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Layer 7 (Security)</span>
                 <span class="text-xs font-mono text-surface-textMuted">TLS 1.2 / 1.3</span>
@@ -342,7 +419,7 @@
             </div>
 
             <!-- Guide Card 5 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Cleartext Risk</span>
                 <span class="text-xs font-mono text-surface-textMuted">HTTP Port 80</span>
@@ -354,7 +431,7 @@
             </div>
 
             <!-- Guide Card 6 -->
-            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+            <div class="bg-surface-card border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">Termination</span>
                 <span class="text-xs font-mono text-surface-textMuted">FIN vs RST</span>
@@ -372,8 +449,8 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="border-t border-surface-border bg-white/90 px-4 py-4 text-center text-xs text-surface-textMuted font-mono">
-      Protocol Archaeology Tool - Multi-Layer Network Story Dissector - Light Peach Edition
+    <footer class="border-t border-surface-border bg-surface-card px-4 py-4 text-center text-xs text-surface-textMuted font-mono transition-colors">
+      Protocol Archaeology Tool - Multi-Layer Network Story Dissector - Interactive Edition
     </footer>
   </div>
 
@@ -383,6 +460,12 @@
     let selectedPacketIndex = 1;
     let currentView = 'story';
     let activeSampleId = null;
+    let activeQuickFilter = 'all';
+    
+    // Playback Engine State
+    let isPlaying = false;
+    let playbackTimer = null;
+    let playbackSpeedMs = 1200;
 
     function getProtoBadge(proto) {
       switch ((proto || '').toUpperCase()) {
@@ -398,6 +481,23 @@
       }
     }
 
+    function setTheme(themeName) {
+      const root = document.getElementById('html-root');
+      root.className = themeName === 'midnight' ? 'dark theme-midnight' : themeName === 'slate' ? 'light theme-slate' : 'light';
+      
+      const themes = ['peach', 'slate', 'midnight'];
+      themes.forEach(t => {
+        const btn = document.getElementById('theme-btn-' + t);
+        if (btn) {
+          if (t === themeName) {
+            btn.className = 'px-2 py-1 rounded-lg text-xs font-bold bg-surface-card text-peach-700 shadow-sm border border-peach-300';
+          } else {
+            btn.className = 'px-2 py-1 rounded-lg text-xs font-medium text-surface-textMuted hover:text-surface-textPrimary';
+          }
+        }
+      });
+    }
+
     function switchView(viewName) {
       currentView = viewName;
       document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
@@ -411,7 +511,7 @@
           if (t === viewName) {
             btn.className = 'tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-peach-500 to-peach-600 text-white shadow-md shadow-peach-500/20 transition-all';
           } else {
-            btn.className = 'tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all';
+            btn.className = 'tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-surface-card transition-all';
           }
         }
       });
@@ -423,9 +523,102 @@
       }
     }
 
+    function setQuickFilter(filterType) {
+      activeQuickFilter = filterType;
+      document.querySelectorAll('.qf-pill').forEach(btn => {
+        btn.className = 'qf-pill px-3 py-1 rounded-xl text-xs font-medium text-surface-textSecondary hover:bg-peach-50 border border-surface-border';
+      });
+      const activeBtn = document.getElementById('qf-' + filterType);
+      if (activeBtn) {
+        activeBtn.className = 'qf-pill px-3 py-1 rounded-xl text-xs font-bold bg-peach-500 text-white shadow-sm';
+      }
+      renderStoryCards();
+    }
+
+    // Playback Engine Functions
+    function togglePlayback() {
+      if (isPlaying) {
+        pausePlayback();
+      } else {
+        startPlayback();
+      }
+    }
+
+    function startPlayback() {
+      if (!currentData || !currentData.packets || currentData.packets.length === 0) return;
+      isPlaying = true;
+      document.getElementById('playback-icon').innerHTML = '&#10074;&#10074;';
+      document.getElementById('playback-text').innerText = 'Pause';
+
+      if (selectedPacketIndex >= currentData.packets.length) {
+        selectedPacketIndex = 1;
+      }
+
+      playbackTimer = setInterval(() => {
+        if (selectedPacketIndex >= currentData.packets.length) {
+          pausePlayback();
+          return;
+        }
+        selectedPacketIndex++;
+        updateActivePacketView();
+      }, playbackSpeedMs);
+    }
+
+    function pausePlayback() {
+      isPlaying = false;
+      clearInterval(playbackTimer);
+      document.getElementById('playback-icon').innerHTML = '&#9658;';
+      document.getElementById('playback-text').innerText = 'Play';
+    }
+
+    function resetPlayback() {
+      pausePlayback();
+      selectedPacketIndex = 1;
+      updateActivePacketView();
+    }
+
+    function nextPacketStep() {
+      pausePlayback();
+      if (!currentData || !currentData.packets) return;
+      if (selectedPacketIndex < currentData.packets.length) {
+        selectedPacketIndex++;
+        updateActivePacketView();
+      }
+    }
+
+    function prevPacketStep() {
+      pausePlayback();
+      if (selectedPacketIndex > 1) {
+        selectedPacketIndex--;
+        updateActivePacketView();
+      }
+    }
+
+    function setPlaybackSpeed(speedVal) {
+      playbackSpeedMs = parseInt(speedVal);
+      if (isPlaying) {
+        pausePlayback();
+        startPlayback();
+      }
+    }
+
+    function updateActivePacketView() {
+      document.getElementById('playback-counter').innerText = `Pkt #${selectedPacketIndex}`;
+      renderStoryCards();
+      if (currentView === 'flow') renderSequenceFlow();
+      if (currentView === 'inspector') renderInspectorDesk();
+
+      // Smooth scroll active card into view
+      const activeCard = document.getElementById(`story-card-${selectedPacketIndex}`);
+      if (activeCard && currentView === 'story') {
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
     function loadSample(sampleId) {
       activeSampleId = sampleId;
       showLoading(true);
+      pausePlayback();
       fetch('/api/samples/' + encodeURIComponent(sampleId))
         .then(res => res.json())
         .then(data => {
@@ -441,6 +634,7 @@
     function handleFileInput(file) {
       if (!file) return;
       showLoading(true);
+      pausePlayback();
       const formData = new FormData();
       formData.append('file', file);
 
@@ -470,42 +664,48 @@
       selectedPacketIndex = 1;
 
       updateScenarioButtons();
+      document.getElementById('playback-counter').innerText = `Pkt #1`;
+
+      // Render Traffic Segmented Bar and Breakdown
+      renderTrafficBreakdown(data);
 
       // Header stats
       const statsContainer = document.getElementById('header-file-stats');
-      statsContainer.innerHTML = `
-        <div class="flex items-center gap-1.5 bg-peach-50 px-3 py-1 rounded-xl border border-surface-border text-peach-800 font-semibold">
-          <svg class="w-3.5 h-3.5 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-          <span>${data.filename || 'capture.pcap'}</span>
-        </div>
-        <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-xl border border-surface-border text-surface-textPrimary">
-          <strong>${data.summary?.total_packets || 0}</strong> Pkts
-        </div>
-        <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-xl border border-surface-border text-peach-700">
-          <strong>${data.summary?.duration_ms || 0}</strong> ms
-        </div>
-      `;
+      if (statsContainer) {
+        statsContainer.innerHTML = `
+          <div class="flex items-center gap-1.5 bg-peach-50 px-3 py-1 rounded-xl border border-surface-border text-peach-800 font-semibold">
+            <svg class="w-3.5 h-3.5 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>${data.filename || 'capture.pcap'}</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-surface-card px-3 py-1 rounded-xl border border-surface-border text-surface-textPrimary">
+            <strong>${data.summary?.total_packets || 0}</strong> Pkts
+          </div>
+          <div class="flex items-center gap-1.5 bg-surface-card px-3 py-1 rounded-xl border border-surface-border text-peach-700">
+            <strong>${data.summary?.duration_ms || 0}</strong> ms
+          </div>
+        `;
+      }
 
       // Metrics grid
       const metricsGrid = document.getElementById('metrics-grid');
       metricsGrid.innerHTML = `
-        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+        <div class="bg-surface-card border border-surface-border rounded-2xl p-3.5 soft-shadow">
           <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Total Packets</span>
           <div class="text-2xl font-black font-mono text-peach-600 mt-1">${data.summary?.total_packets || 0}</div>
         </div>
-        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+        <div class="bg-surface-card border border-surface-border rounded-2xl p-3.5 soft-shadow">
           <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Duration</span>
           <div class="text-2xl font-black font-mono text-peach-700 mt-1">${data.summary?.duration_ms || 0} <span class="text-xs font-normal">ms</span></div>
         </div>
-        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+        <div class="bg-surface-card border border-surface-border rounded-2xl p-3.5 soft-shadow">
           <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Transferred</span>
           <div class="text-2xl font-black font-mono text-emerald-600 mt-1">${((data.summary?.total_bytes || 0) / 1024).toFixed(2)} <span class="text-xs font-normal">KB</span></div>
         </div>
-        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+        <div class="bg-surface-card border border-surface-border rounded-2xl p-3.5 soft-shadow">
           <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Endpoints</span>
           <div class="text-2xl font-black font-mono text-amber-700 mt-1">${data.summary?.endpoints_count || 0} <span class="text-xs font-normal">Hosts</span></div>
         </div>
-        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow col-span-2">
+        <div class="bg-surface-card border border-surface-border rounded-2xl p-3.5 soft-shadow col-span-2">
           <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block mb-1">Dissected Protocols</span>
           <div class="flex flex-wrap gap-1.5">
             ${(data.summary?.protocols || []).map(p => `<span class="px-2.5 py-0.5 rounded-full text-[10px] ${getProtoBadge(p)}">${p}</span>`).join('')}
@@ -551,10 +751,62 @@
       renderInspectorDesk();
     }
 
+    function renderTrafficBreakdown(data) {
+      const packets = data.packets || [];
+      if (packets.length === 0) return;
+
+      const totalBytes = data.summary?.total_bytes || 1;
+      document.getElementById('traffic-total-bandwidth').innerText = `${(totalBytes / 1024).toFixed(2)} KB Transferred`;
+
+      // Group counts and bytes by protocol
+      const protoStats = {};
+      packets.forEach(p => {
+        const proto = (p.protocol || 'Other').toUpperCase();
+        if (!protoStats[proto]) {
+          protoStats[proto] = { count: 0, bytes: 0 };
+        }
+        protoStats[proto].count++;
+        protoStats[proto].bytes += (p.length || 0);
+      });
+
+      const colorMap = {
+        'TLS': '#10b981',
+        'HTTPS': '#10b981',
+        'TCP': '#f97316',
+        'HTTP': '#f43f5e',
+        'DNS': '#f59e0b',
+        'ARP': '#a855f7',
+        'UDP': '#0ea5e9',
+        'ICMP': '#ef4444'
+      };
+
+      const segBar = document.getElementById('traffic-segmented-bar');
+      const legChips = document.getElementById('traffic-legend-chips');
+
+      let barHtml = '';
+      let legendHtml = '';
+
+      Object.entries(protoStats).forEach(([proto, stat]) => {
+        const percent = Math.max(2, Math.round((stat.bytes / totalBytes) * 100));
+        const color = colorMap[proto] || '#78716c';
+
+        barHtml += `<div style="width: ${percent}%; background-color: ${color};" title="${proto}: ${percent}% (${(stat.bytes / 1024).toFixed(1)} KB)" class="h-full transition-all"></div>`;
+        legendHtml += `
+          <div class="flex items-center gap-1.5 bg-peach-50/60 px-2.5 py-1 rounded-lg border border-surface-border font-mono">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${color};"></span>
+            <span class="font-bold text-surface-textPrimary">${proto}</span>
+            <span class="text-surface-textMuted text-[10px]">${percent}% (${stat.count} pkts)</span>
+          </div>
+        `;
+      });
+
+      segBar.innerHTML = barHtml;
+      legChips.innerHTML = legendHtml;
+    }
+
     function renderStoryCards() {
       if (!currentData || !currentData.chapters) return;
       const chFilter = document.getElementById('chapter-filter').value;
-      const prFilter = document.getElementById('proto-filter').value;
       const search = (document.getElementById('search-input').value || '').toLowerCase();
 
       const container = document.getElementById('story-cards-container');
@@ -564,7 +816,12 @@
         if (chFilter !== 'all' && chap.id !== parseInt(chFilter)) return;
 
         const filteredSteps = (chap.steps || []).filter(step => {
-          if (prFilter !== 'all' && (step.protocol || '').toUpperCase() !== prFilter.toUpperCase()) return false;
+          // Quick Filter checks
+          if (activeQuickFilter === 'anomalies' && !step.has_anomaly) return false;
+          if (activeQuickFilter === 'cleartext' && !step.is_cleartext) return false;
+          if (activeQuickFilter === 'handshakes' && !(step.protocol === 'TLS' || (step.summary || '').includes('SYN'))) return false;
+
+          // Search checks
           if (search) {
             const matches = (step.narrative || '').toLowerCase().includes(search) ||
                             (step.title || '').toLowerCase().includes(search) ||
@@ -588,7 +845,7 @@
               <h3 class="text-base font-extrabold text-surface-textPrimary tracking-tight">${chap.name}</h3>
               <p class="text-xs text-surface-textMuted">${chap.description}</p>
             </div>
-            <span class="ml-auto text-xs font-mono px-2.5 py-1 rounded-lg bg-white text-peach-700 border border-surface-border font-semibold">
+            <span class="ml-auto text-xs font-mono px-2.5 py-1 rounded-lg bg-surface-card text-peach-700 border border-surface-border font-semibold">
               ${filteredSteps.length} ${filteredSteps.length === 1 ? 'Step' : 'Steps'}
             </span>
           </div>
@@ -600,14 +857,15 @@
         filteredSteps.forEach(card => {
           const cardEl = document.createElement('div');
           const isSelected = selectedPacketIndex === card.index;
-          cardEl.className = `group rounded-2xl p-5 transition-all cursor-pointer border bg-white ${
+          cardEl.id = `story-card-${card.index}`;
+          cardEl.className = `group rounded-2xl p-5 transition-all cursor-pointer border bg-surface-card ${
             isSelected 
-              ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg' 
+              ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg scale-[1.008]' 
               : 'border-surface-border hover:border-peach-300 hover:bg-surface-cardHover soft-shadow'
           }`;
           cardEl.onclick = () => {
             selectedPacketIndex = card.index;
-            renderStoryCards();
+            updateActivePacketView();
           };
 
           cardEl.innerHTML = `
@@ -618,6 +876,7 @@
                 <h4 class="text-sm font-bold text-surface-textPrimary group-hover:text-peach-700 transition-colors">${card.title}</h4>
                 ${card.has_anomaly ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">RST Anomaly</span>' : ''}
                 ${card.is_cleartext ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">Cleartext</span>' : ''}
+                ${isSelected ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-peach-500 text-white font-mono uppercase">Active Pkt</span>' : ''}
               </div>
               <div class="flex items-center gap-3 text-xs text-surface-textMuted font-mono">
                 <span>+${card.timestamp_ms} ms</span>
@@ -630,7 +889,7 @@
             </div>
 
             <!-- Plain English Narrative -->
-            <div class="bg-peach-50/60 p-3.5 rounded-xl border border-surface-borderLight mb-3.5 text-xs text-surface-textSecondary leading-relaxed font-normal">
+            <div class="bg-peach-50/50 p-3.5 rounded-xl border border-surface-borderLight mb-3.5 text-xs text-surface-textSecondary leading-relaxed font-normal">
               ${card.narrative}
             </div>
 
@@ -640,14 +899,14 @@
                 <span class="w-2 h-2 rounded-full bg-peach-500 animate-pulse"></span>
                 <span class="text-peach-800 font-bold">${card.src_ip}</span>
                 ${card.src_port ? `<span class="text-surface-textMuted">:${card.src_port}</span>` : ''}
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-white text-surface-textSecondary border border-surface-border font-sans">${card.src_role}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-card text-surface-textSecondary border border-surface-border font-sans">${card.src_role}</span>
               </div>
               <span class="text-peach-500 font-bold">&rarr;</span>
               <div class="flex items-center gap-2 bg-peach-50/70 px-3 py-1.5 rounded-xl border border-surface-border">
                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 <span class="text-amber-800 font-bold">${card.dst_ip}</span>
                 ${card.dst_port ? `<span class="text-surface-textMuted">:${card.dst_port}</span>` : ''}
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-white text-surface-textSecondary border border-surface-border font-sans">${card.dst_role}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-card text-surface-textSecondary border border-surface-border font-sans">${card.dst_role}</span>
               </div>
             </div>
           `;
@@ -661,7 +920,7 @@
       const hostsHeader = document.getElementById('flow-hosts-header');
       hostsHeader.innerHTML = Object.values(currentData.host_roles || {}).map(h => `
         <div class="bg-peach-50/70 p-3.5 rounded-2xl border border-surface-border text-center space-y-1 soft-shadow">
-          <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-peach-800 border border-peach-200">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-surface-card text-peach-800 border border-peach-200">
             ${h.role}
           </span>
           <div class="font-mono text-xs font-bold text-surface-textPrimary">${h.ip}</div>
@@ -673,14 +932,15 @@
       stepsContainer.innerHTML = currentData.sequence_flow.map(item => {
         const isSel = selectedPacketIndex === item.packet_index;
         return `
-          <div onclick="selectedPacketIndex = ${item.packet_index}; renderSequenceFlow();" class="p-4 rounded-2xl border transition-all cursor-pointer bg-white ${
-            isSel ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg' : 'border-surface-border hover:border-peach-300 soft-shadow'
+          <div onclick="selectedPacketIndex = ${item.packet_index}; updateActivePacketView();" class="p-4 rounded-2xl border transition-all cursor-pointer bg-surface-card ${
+            isSel ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg scale-[1.005]' : 'border-surface-border hover:border-peach-300 soft-shadow'
           }">
             <div class="flex items-center justify-between gap-3 mb-2.5">
               <div class="flex items-center gap-2">
                 <span class="font-bold text-surface-textMuted bg-peach-50 px-2 py-0.5 rounded-md text-[11px] border border-peach-200">#${item.packet_index}</span>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] ${getProtoBadge(item.protocol)}">${item.protocol}</span>
                 <span class="text-surface-textPrimary font-sans font-bold text-xs">${item.label}</span>
+                ${isSel ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-peach-500 text-white font-mono uppercase">Playing</span>' : ''}
               </div>
               <span class="text-surface-textMuted text-[11px]">+${item.timestamp_ms} ms</span>
             </div>
@@ -714,8 +974,8 @@
       listContainer.innerHTML = currentData.packets.map(p => {
         const isSel = p.index === selectedPacketIndex;
         return `
-          <button onclick="selectedPacketIndex = ${p.index}; renderInspectorDesk();" class="w-full text-left p-2.5 rounded-xl border text-xs font-mono transition-all flex items-center justify-between ${
-            isSel ? 'bg-peach-100 text-peach-900 border-peach-400 font-bold shadow-sm' : 'bg-white text-surface-textSecondary border-surface-border hover:bg-peach-50/70 hover:border-peach-300'
+          <button onclick="selectedPacketIndex = ${p.index}; updateActivePacketView();" class="w-full text-left p-2.5 rounded-xl border text-xs font-mono transition-all flex items-center justify-between ${
+            isSel ? 'bg-peach-100 text-peach-900 border-peach-400 font-bold shadow-sm' : 'bg-surface-card text-surface-textSecondary border-surface-border hover:bg-peach-50/70 hover:border-peach-300'
           }">
             <div class="flex items-center gap-2 truncate">
               <span class="font-bold text-surface-textMuted">#${p.index}</span>
@@ -732,7 +992,7 @@
       if (!pkt) return;
 
       let html = `
-        <div class="bg-white border border-surface-border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 soft-shadow">
+        <div class="bg-surface-card border border-surface-border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 soft-shadow">
           <div>
             <div class="flex items-center gap-2.5">
               <span class="text-lg font-black font-mono text-peach-700">Packet #${pkt.index}</span>
@@ -751,7 +1011,7 @@
       // LAYER 7 (Application)
       if (pkt.l7) {
         html += `
-          <div class="bg-white border border-emerald-200 rounded-3xl p-5 space-y-3 soft-shadow">
+          <div class="bg-surface-card border border-emerald-200 rounded-3xl p-5 space-y-3 soft-shadow">
             <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center text-xs font-black">L7</div>
@@ -788,7 +1048,7 @@
       // LAYER 4 (Transport)
       if (pkt.l4) {
         html += `
-          <div class="bg-white border border-peach-200 rounded-3xl p-5 space-y-3 soft-shadow">
+          <div class="bg-surface-card border border-peach-200 rounded-3xl p-5 space-y-3 soft-shadow">
             <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-xl bg-peach-100 text-peach-800 border border-peach-300 flex items-center justify-center text-xs font-black">L4</div>
@@ -819,16 +1079,16 @@
 
             ${pkt.l4.flags_map ? `
               <div>
-                <span class="text-[10px] font-bold text-peach-700 uppercase tracking-wider block mb-1.5">TCP Flags Dissection:</span>
+                <span class="text-[10px] font-bold text-peach-700 uppercase tracking-wider block mb-1.5">Interactive TCP Flag Register:</span>
                 <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 font-mono text-xs text-center">
                   ${Object.entries(pkt.l4.flags_map).map(([flg, active]) => `
-                    <div class="p-2 rounded-xl border transition-all ${
+                    <div class="p-2.5 rounded-2xl border transition-all ${
                       active 
-                        ? (flg === 'RST' ? 'bg-rose-100 text-rose-800 border-rose-300 font-extrabold' : flg === 'SYN' ? 'bg-peach-100 text-peach-800 border-peach-400 font-extrabold' : flg === 'FIN' ? 'bg-amber-100 text-amber-800 border-amber-300 font-extrabold' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold')
-                        : 'bg-peach-50/40 text-stone-400 border-surface-border'
+                        ? (flg === 'RST' ? 'bg-rose-100 text-rose-800 border-rose-300 font-extrabold shadow-sm' : flg === 'SYN' ? 'bg-peach-500 text-white border-peach-600 font-extrabold shadow-sm' : flg === 'FIN' ? 'bg-amber-100 text-amber-800 border-amber-300 font-extrabold' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold')
+                        : 'bg-peach-50/30 text-stone-400 border-surface-border opacity-70'
                     }">
-                      <div class="text-[10px]">${flg}</div>
-                      <div class="text-xs font-black">${active ? '1' : '0'}</div>
+                      <div class="text-[10px] tracking-wider">${flg}</div>
+                      <div class="text-sm font-black mt-0.5">${active ? '1' : '0'}</div>
                     </div>
                   `).join('')}
                 </div>
@@ -841,7 +1101,7 @@
       // LAYER 3 (Network)
       if (pkt.l3) {
         html += `
-          <div class="bg-white border border-amber-200 rounded-3xl p-5 space-y-3 soft-shadow">
+          <div class="bg-surface-card border border-amber-200 rounded-3xl p-5 space-y-3 soft-shadow">
             <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 flex items-center justify-center text-xs font-black">L3</div>
@@ -874,7 +1134,7 @@
       // LAYER 2 (Data Link)
       if (pkt.l2 || pkt.arp) {
         html += `
-          <div class="bg-white border border-purple-200 rounded-3xl p-5 space-y-3 soft-shadow">
+          <div class="bg-surface-card border border-purple-200 rounded-3xl p-5 space-y-3 soft-shadow">
             <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-xl bg-purple-100 text-purple-800 border border-purple-300 flex items-center justify-center text-xs font-black">L2</div>
@@ -908,10 +1168,10 @@
         `;
       }
 
-      // RAW HEX & ASCII DISSECTOR
+      // RAW HEX AND ASCII DISSECTOR
       if (pkt.hex_dump) {
         html += `
-          <div class="bg-white border border-surface-border rounded-3xl p-5 space-y-3 soft-shadow">
+          <div class="bg-surface-card border border-surface-border rounded-3xl p-5 space-y-3 soft-shadow">
             <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
               <h4 class="text-sm font-bold text-surface-textPrimary flex items-center gap-2 font-mono">
                 <span class="w-2 h-2 rounded-full bg-peach-500"></span>
@@ -958,7 +1218,7 @@
             <button onclick="loadSample('${s.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 border ${
               activeSampleId === s.id 
                 ? 'bg-peach-500 text-white border-peach-600 shadow-md shadow-peach-500/20 font-bold' 
-                : 'bg-white text-surface-textSecondary border-surface-border hover:border-peach-300 hover:text-peach-800'
+                : 'bg-surface-card text-surface-textSecondary border-surface-border hover:border-peach-300 hover:text-peach-800'
             }">
               ${s.title}
             </button>
