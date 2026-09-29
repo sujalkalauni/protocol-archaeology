@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  protocol-archaeology:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: protocol_archaeology_tool
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/samples:/app/backend/samples
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Protocol Archaeology — Network Packet Story & OSI Forensics</title>
+  <meta name="description" content="Translates raw packet captures into an interactive forensic narrative story, sequence interaction ladder, and multi-layer OSI inspector." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            peach: {
+              50: '#fffaf6',
+              100: '#fff3ec',
+              200: '#ffe4d6',
+              300: '#fed0b9',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            surface: {
+              bg: '#fffaf6',
+              card: '#ffffff',
+              cardHover: '#fffdfb',
+              border: '#fae4d7',
+              borderLight: '#fdeee6',
+              textPrimary: '#292524',
+              textSecondary: '#57534e',
+              textMuted: '#78716c',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          backgroundImage: {
+            'peach-glow': "radial-gradient(circle at 50% -10%, rgba(251, 146, 60, 0.12), transparent 60%)",
+            'peach-grid': "radial-gradient(circle, rgba(234, 88, 12, 0.05) 1px, transparent 1px)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #fffaf6;
+      color: #292524;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #fffaf6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #fed0b9;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #fba980;
+    }
+    .bg-grid {
+      background-size: 24px 24px;
+    }
+    .soft-shadow {
+      box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.02);
+    }
+    .soft-shadow-lg {
+      box-shadow: 0 20px 35px -5px rgba(234, 88, 12, 0.09), 0 8px 16px -3px rgba(0, 0, 0, 0.03);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-surface-bg bg-peach-glow bg-peach-grid bg-grid text-surface-textPrimary antialiased selection:bg-peach-300 selection:text-peach-900">
+  <div class="flex flex-col min-h-screen">
+    
+    <!-- TOP PEACH & WHITE NAVBAR -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-surface-border px-4 lg:px-8 py-3 flex items-center justify-between soft-shadow">
+      <!-- Logo & Brand -->
+      <div class="flex items-center gap-3.5">
+        <div class="relative group cursor-pointer">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-peach-500 via-peach-400 to-amber-300 flex items-center justify-center shadow-lg shadow-peach-500/25 ring-2 ring-peach-200 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white"></div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base lg:text-lg font-extrabold bg-gradient-to-r from-peach-700 via-peach-600 to-amber-600 bg-clip-text text-transparent tracking-tight">
+              Protocol Archaeology
+            </h1>
+            <span class="px-2 py-0.5 text-[9px] font-bold bg-peach-100 text-peach-800 border border-peach-300 rounded-full uppercase tracking-wider">
+              Forensic Lab
+            </span>
+          </div>
+          <p class="text-[11px] text-surface-textMuted flex items-center gap-1.5 font-mono">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-peach-500"></span> PCAP Narrative & Multi-Layer OSI Forensics
+          </p>
+        </div>
+      </div>
+
+      <!-- VIEW SELECTOR TABS -->
+      <nav class="flex items-center bg-peach-50 p-1.5 rounded-2xl border border-surface-border shadow-inner">
+        <button id="btn-tab-story" onclick="switchView('story')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-peach-500 to-peach-600 text-white shadow-md shadow-peach-500/20 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>Story Narrative</span>
+        </button>
+        <button id="btn-tab-flow" onclick="switchView('flow')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          <span>Sequence Flow</span>
+        </button>
+        <button id="btn-tab-inspector" onclick="switchView('inspector')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>OSI Inspector</span>
+        </button>
+        <button id="btn-tab-guide" onclick="switchView('guide')" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Protocol Guide</span>
+        </button>
+      </nav>
+
+      <!-- UPLOAD & ACTIONS -->
+      <div class="flex items-center gap-2">
+        <input type="file" id="file-input" accept=".pcap,.pcapng,.cap" class="hidden" onchange="handleFileInput(this.files[0])" />
+        <button onclick="document.getElementById('file-input').click()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-peach-50 hover:bg-peach-100 text-peach-700 border border-peach-300 hover:border-peach-400 shadow-sm transition-all">
+          <svg class="w-4 h-4 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Upload PCAP</span>
+        </button>
+        <button onclick="exportReportJSON()" title="Export JSON Report" class="p-2 rounded-xl text-surface-textMuted hover:text-peach-700 hover:bg-peach-50 border border-surface-border transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- SCENARIOS SUB-HEADER -->
+    <section class="bg-white/80 border-b border-surface-border px-4 lg:px-8 py-2.5">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 max-w-7xl mx-auto">
+        <div id="sample-buttons-container" class="flex items-center gap-2 overflow-x-auto max-w-full pb-1 lg:pb-0">
+          <span class="text-[11px] font-bold text-peach-700 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+            ⚡ Scenarios:
+          </span>
+        </div>
+
+        <div id="header-file-stats" class="flex items-center gap-2 text-xs text-surface-textSecondary shrink-0 font-mono"></div>
+      </div>
+    </section>
+
+    <!-- MAIN BODY -->
+    <main class="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
+      
+      <!-- LOADING STATE -->
+      <div id="loading-spinner" class="hidden flex flex-col items-center justify-center py-32 space-y-4">
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-peach-200 border-t-peach-500 rounded-full animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-peach-600 font-bold text-xs font-mono">PCAP</div>
+        </div>
+        <p class="text-sm font-semibold text-peach-700 animate-pulse">Dissecting protocol layers and reconstructing forensic narrative...</p>
+      </div>
+
+      <!-- MAIN CONTENT CONTAINER -->
+      <div id="content-container" class="space-y-6">
+
+        <!-- METRICS HERO CARDS -->
+        <div id="metrics-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+
+        <!-- SECURITY & FORENSICS BANNER -->
+        <div id="security-audit-banner" class="rounded-3xl border border-surface-border bg-gradient-to-r from-white via-peach-50/50 to-white p-5 soft-shadow"></div>
+
+        <!-- VIEW 1: STORY NARRATIVE VIEW -->
+        <div id="view-story" class="view-panel space-y-6">
+          <!-- Search & Filter Controls -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-surface-border soft-shadow">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-bold text-peach-700 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Filter:
+              </span>
+              <select id="chapter-filter" onchange="renderStoryCards()" class="bg-peach-50/50 border border-surface-border rounded-xl text-xs px-3 py-1.5 text-surface-textPrimary focus:outline-none focus:border-peach-400 transition-colors">
+                <option value="all">All 5 Chapters</option>
+                <option value="1">Chapter 1 — Address Resolution (ARP/DNS)</option>
+                <option value="2">Chapter 2 — Connection Setup (TCP Handshake)</option>
+                <option value="3">Chapter 3 — Secure Exchange (TLS Negotiation)</option>
+                <option value="4">Chapter 4 — Web Content Delivery (HTTP/Data)</option>
+                <option value="5">Chapter 5 — Connection Teardown & Anomalies</option>
+              </select>
+
+              <select id="proto-filter" onchange="renderStoryCards()" class="bg-peach-50/50 border border-surface-border rounded-xl text-xs px-3 py-1.5 text-surface-textPrimary focus:outline-none focus:border-peach-400 transition-colors">
+                <option value="all">All Protocols</option>
+                <option value="DNS">DNS</option>
+                <option value="TLS">TLS</option>
+                <option value="HTTP">HTTP</option>
+                <option value="TCP">TCP</option>
+                <option value="ARP">ARP</option>
+                <option value="ICMP">ICMP</option>
+              </select>
+            </div>
+
+            <div class="relative">
+              <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-peach-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input
+                type="text"
+                id="search-input"
+                oninput="renderStoryCards()"
+                placeholder="Search IPs, domains, URIs, payloads..."
+                class="bg-peach-50/50 border border-surface-border rounded-xl text-xs pl-9 pr-3 py-1.5 text-surface-textPrimary w-full sm:w-72 focus:outline-none focus:border-peach-400 transition-colors placeholder:text-surface-textMuted"
+              />
+            </div>
+          </div>
+
+          <!-- Chronological Story Container -->
+          <div id="story-cards-container" class="space-y-10"></div>
+        </div>
+
+        <!-- VIEW 2: SEQUENCE FLOW LADDER VIEW -->
+        <div id="view-flow" class="view-panel hidden bg-white border border-surface-border rounded-3xl p-6 lg:p-8 space-y-6 soft-shadow-lg">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-4">
+            <div>
+              <h3 class="text-lg font-bold text-surface-textPrimary flex items-center gap-2">
+                <svg class="w-5 h-5 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                Host Interaction Ladder Diagram
+              </h3>
+              <p class="text-xs text-surface-textMuted mt-0.5">Chronological packet exchange vectors between communicating network endpoints.</p>
+            </div>
+            <div class="text-xs font-mono text-peach-700">
+              Click any flow to inspect OSI layers &rarr;
+            </div>
+          </div>
+
+          <!-- Host Columns Header -->
+          <div id="flow-hosts-header" class="grid grid-cols-2 md:grid-cols-4 gap-3.5 pb-2"></div>
+
+          <!-- Ladder Flow Stream -->
+          <div id="flow-steps-container" class="space-y-3 font-mono text-xs"></div>
+        </div>
+
+        <!-- VIEW 3: OSI INSPECTOR DESK -->
+        <div id="view-inspector" class="view-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left: Packet Stream List -->
+          <div class="lg:col-span-4 bg-white border border-surface-border rounded-3xl p-4 space-y-3 max-h-[820px] flex flex-col soft-shadow">
+            <div class="flex items-center justify-between pb-2.5 border-b border-surface-border">
+              <h3 class="text-sm font-bold text-surface-textPrimary flex items-center gap-2">
+                <svg class="w-4 h-4 text-peach-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                Packet Stream
+              </h3>
+              <span id="inspector-packet-count" class="text-xs font-mono px-2 py-0.5 rounded-full bg-peach-50 text-peach-700 border border-peach-200">
+                0 pkts
+              </span>
+            </div>
+
+            <div id="inspector-packet-list" class="overflow-y-auto space-y-2 flex-1 pr-1.5"></div>
+          </div>
+
+          <!-- Right: Multi-Layer OSI Breakdown & Hex Terminal -->
+          <div id="inspector-desk-details" class="lg:col-span-8 space-y-4"></div>
+        </div>
+
+        <!-- VIEW 4: PROTOCOL GUIDE & HANDBOOK -->
+        <div id="view-guide" class="view-panel hidden space-y-6">
+          <div class="bg-gradient-to-r from-white via-peach-50/70 to-white border border-surface-border rounded-3xl p-6 lg:p-8 soft-shadow">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-2xl bg-peach-100 border border-peach-300 text-peach-700 flex items-center justify-center font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-surface-textPrimary">Network Protocol Forensic Handbook</h3>
+                <p class="text-xs text-surface-textMuted">Core protocol specifications, packet structure standards, and security dissection patterns.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Guide Card 1 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Layer 2 (Data Link)</span>
+                <span class="text-xs font-mono text-surface-textMuted">Ethernet & ARP</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">Address Resolution Protocol (ARP)</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                Binds Layer 3 IP network addressing to Layer 2 physical MAC addresses. The sender broadcasts <code>Who has IP? Tell Me</code> (Opcode 1), and the target machine responds with <code>IP is at MAC</code> (Opcode 2).
+              </p>
+            </div>
+
+            <!-- Guide Card 2 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Layer 7 (Application)</span>
+                <span class="text-xs font-mono text-surface-textMuted">UDP Port 53</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">Domain Name System (DNS)</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                Resolves human-friendly domain names (e.g. <code>example.com</code>) into IP addresses (A/AAAA records). Unencrypted DNS over standard UDP 53 exposes queries to network eavesdropping.
+              </p>
+            </div>
+
+            <!-- Guide Card 3 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-peach-50 text-peach-700 border border-peach-200">Layer 4 (Transport)</span>
+                <span class="text-xs font-mono text-surface-textMuted">TCP Handshake</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">TCP 3-Way Handshake & Reliability</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                Reliable stateful communication is established through:<br />
+                • <strong>SYN:</strong> Client requests connection and establishes Initial Sequence Number.<br />
+                • <strong>SYN-ACK:</strong> Server acknowledges and sends its Initial Sequence Number.<br />
+                • <strong>ACK:</strong> Client acknowledges; stream is ready for payload transmission.
+              </p>
+            </div>
+
+            <!-- Guide Card 4 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Layer 7 (Security)</span>
+                <span class="text-xs font-mono text-surface-textMuted">TLS 1.2 / 1.3</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">Transport Layer Security (TLS)</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                Establishes cryptographic tunnel. The <code>Client Hello</code> proposes SNI and cipher suites. The <code>Server Hello</code> confirms cryptographic parameters and validates identity via certificates.
+              </p>
+            </div>
+
+            <!-- Guide Card 5 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Cleartext Risk</span>
+                <span class="text-xs font-mono text-surface-textMuted">HTTP Port 80</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">HTTP vs HTTPS Security Audit</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                Plain HTTP transmits headers, cookies, and payloads in cleartext. HTTPS wraps HTTP requests inside a TLS encrypted envelope, preventing snooping and tampering.
+              </p>
+            </div>
+
+            <!-- Guide Card 6 -->
+            <div class="bg-white border border-surface-border rounded-3xl p-6 space-y-3 soft-shadow hover:border-peach-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">Termination</span>
+                <span class="text-xs font-mono text-surface-textMuted">FIN vs RST</span>
+              </div>
+              <h4 class="text-base font-bold text-surface-textPrimary">Connection Teardown vs Abrupt Resets</h4>
+              <p class="text-xs text-surface-textSecondary leading-relaxed">
+                • <strong>FIN-ACK:</strong> Graceful bidirectional connection closing.<br />
+                • <strong>RST (Reset):</strong> Abrupt termination sent when connecting to a closed port, firewall rejection, or unexpected socket drop.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-surface-border bg-white/90 px-4 py-4 text-center text-xs text-surface-textMuted font-mono">
+      Protocol Archaeology Tool • Multi-Layer Network Story Dissector • Light Peach Edition
+    </footer>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    let currentData = null;
+    let selectedPacketIndex = 1;
+    let currentView = 'story';
+    let activeSampleId = null;
+
+    function getProtoBadge(proto) {
+      switch ((proto || '').toUpperCase()) {
+        case 'DNS': return 'bg-amber-50 text-amber-800 border border-amber-200 font-bold';
+        case 'HTTP': return 'bg-rose-50 text-rose-800 border border-rose-200 font-bold';
+        case 'TLS':
+        case 'HTTPS': return 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+        case 'TCP': return 'bg-orange-50 text-orange-800 border border-orange-200 font-bold';
+        case 'UDP': return 'bg-sky-50 text-sky-800 border border-sky-200 font-bold';
+        case 'ARP': return 'bg-purple-50 text-purple-800 border border-purple-200 font-bold';
+        case 'ICMP': return 'bg-red-50 text-red-800 border border-red-200 font-bold';
+        default: return 'bg-stone-100 text-stone-700 border border-stone-200 font-bold';
+      }
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+      const activePanel = document.getElementById('view-' + viewName);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      const tabs = ['story', 'flow', 'inspector', 'guide'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('btn-tab-' + t);
+        if (btn) {
+          if (t === viewName) {
+            btn.className = 'tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-peach-500 to-peach-600 text-white shadow-md shadow-peach-500/20 transition-all';
+          } else {
+            btn.className = 'tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium text-surface-textSecondary hover:text-peach-700 hover:bg-white transition-all';
+          }
+        }
+      });
+
+      if (viewName === 'inspector') {
+        renderInspectorDesk();
+      } else if (viewName === 'flow') {
+        renderSequenceFlow();
+      }
+    }
+
+    function loadSample(sampleId) {
+      activeSampleId = sampleId;
+      showLoading(true);
+      fetch('/api/samples/' + encodeURIComponent(sampleId))
+        .then(res => res.json())
+        .then(data => {
+          showLoading(false);
+          populateAnalysis(data);
+        })
+        .catch(err => {
+          showLoading(false);
+          alert('Failed to load sample: ' + err.message);
+        });
+    }
+
+    function handleFileInput(file) {
+      if (!file) return;
+      showLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/api/analyze', { method: 'POST', body: formData })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to analyze capture');
+          return res.json();
+        })
+        .then(data => {
+          showLoading(false);
+          activeSampleId = null;
+          populateAnalysis(data);
+        })
+        .catch(err => {
+          showLoading(false);
+          alert('Upload failed: ' + err.message);
+        });
+    }
+
+    function showLoading(isLoading) {
+      document.getElementById('loading-spinner').classList.toggle('hidden', !isLoading);
+      document.getElementById('content-container').classList.toggle('hidden', isLoading);
+    }
+
+    function populateAnalysis(data) {
+      currentData = data;
+      selectedPacketIndex = 1;
+
+      updateScenarioButtons();
+
+      // Header stats
+      const statsContainer = document.getElementById('header-file-stats');
+      statsContainer.innerHTML = `
+        <div class="flex items-center gap-1.5 bg-peach-50 px-3 py-1 rounded-xl border border-surface-border text-peach-800 font-semibold">
+          <svg class="w-3.5 h-3.5 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          <span>${data.filename || 'capture.pcap'}</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-xl border border-surface-border text-surface-textPrimary">
+          ⚡ <strong>${data.summary?.total_packets || 0}</strong> Pkts
+        </div>
+        <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-xl border border-surface-border text-peach-700">
+          ⏱️ <strong>${data.summary?.duration_ms || 0}</strong> ms
+        </div>
+      `;
+
+      // Metrics grid
+      const metricsGrid = document.getElementById('metrics-grid');
+      metricsGrid.innerHTML = `
+        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+          <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Total Packets</span>
+          <div class="text-2xl font-black font-mono text-peach-600 mt-1">${data.summary?.total_packets || 0}</div>
+        </div>
+        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+          <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Duration</span>
+          <div class="text-2xl font-black font-mono text-peach-700 mt-1">${data.summary?.duration_ms || 0} <span class="text-xs font-normal">ms</span></div>
+        </div>
+        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+          <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Transferred</span>
+          <div class="text-2xl font-black font-mono text-emerald-600 mt-1">${((data.summary?.total_bytes || 0) / 1024).toFixed(2)} <span class="text-xs font-normal">KB</span></div>
+        </div>
+        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow">
+          <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block">Endpoints</span>
+          <div class="text-2xl font-black font-mono text-amber-700 mt-1">${data.summary?.endpoints_count || 0} <span class="text-xs font-normal">Hosts</span></div>
+        </div>
+        <div class="bg-white border border-surface-border rounded-2xl p-3.5 soft-shadow col-span-2">
+          <span class="text-[10px] font-bold text-surface-textMuted uppercase tracking-wider block mb-1">Dissected Protocols</span>
+          <div class="flex flex-wrap gap-1.5">
+            ${(data.summary?.protocols || []).map(p => `<span class="px-2.5 py-0.5 rounded-full text-[10px] ${getProtoBadge(p)}">${p}</span>`).join('')}
+          </div>
+        </div>
+      `;
+
+      // Security Audit Banner
+      const sec = data.security_audit || {};
+      const secBanner = document.getElementById('security-audit-banner');
+      const hasCleartext = (sec.cleartext_protocols || []).length > 0;
+      secBanner.innerHTML = `
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-3.5">
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg border shrink-0 ${hasCleartext ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-emerald-100 border-emerald-300 text-emerald-800'}">
+              ${hasCleartext ? '⚠️' : '🛡️'}
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h4 class="text-sm font-extrabold text-surface-textPrimary">Cryptographic Security & Forensics</h4>
+                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${sec.is_secure ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}">
+                  Security Grade: ${sec.score || 'A'}
+                </span>
+              </div>
+              <p class="text-xs text-surface-textSecondary mt-1 leading-relaxed">
+                ${hasCleartext 
+                  ? '⚠️ Cleartext unencrypted traffic detected: <strong class="text-peach-700">' + sec.cleartext_protocols.join(' • ') + '</strong>. Sensitive payloads visible in transit.'
+                  : '🔒 All application streams are protected by end-to-end cryptographic TLS encapsulation.'}
+              </p>
+            </div>
+          </div>
+
+          ${(sec.anomalies || []).length > 0 ? `
+            <div class="bg-rose-50 border border-rose-200 text-rose-800 px-3.5 py-2 rounded-xl text-xs font-mono shrink-0 font-bold">
+              🚨 ${sec.anomalies.length} TCP Reset / Anomaly event(s) detected
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      renderStoryCards();
+      renderSequenceFlow();
+      renderInspectorDesk();
+    }
+
+    function renderStoryCards() {
+      if (!currentData || !currentData.chapters) return;
+      const chFilter = document.getElementById('chapter-filter').value;
+      const prFilter = document.getElementById('proto-filter').value;
+      const search = (document.getElementById('search-input').value || '').toLowerCase();
+
+      const container = document.getElementById('story-cards-container');
+      container.innerHTML = '';
+
+      currentData.chapters.forEach(chap => {
+        if (chFilter !== 'all' && chap.id !== parseInt(chFilter)) return;
+
+        const filteredSteps = (chap.steps || []).filter(step => {
+          if (prFilter !== 'all' && (step.protocol || '').toUpperCase() !== prFilter.toUpperCase()) return false;
+          if (search) {
+            const matches = (step.narrative || '').toLowerCase().includes(search) ||
+                            (step.title || '').toLowerCase().includes(search) ||
+                            (step.src_ip || '').toLowerCase().includes(search) ||
+                            (step.dst_ip || '').toLowerCase().includes(search);
+            if (!matches) return false;
+          }
+          return true;
+        });
+
+        if (filteredSteps.length === 0) return;
+
+        const chapSection = document.createElement('div');
+        chapSection.className = 'space-y-4';
+        chapSection.innerHTML = `
+          <div class="flex items-center gap-3 border-b border-surface-border pb-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-peach-500 to-peach-600 text-white flex items-center justify-center font-black text-xs font-mono shadow-md shadow-peach-500/20">
+              0${chap.id}
+            </div>
+            <div>
+              <h3 class="text-base font-extrabold text-surface-textPrimary tracking-tight">${chap.name}</h3>
+              <p class="text-xs text-surface-textMuted">${chap.description}</p>
+            </div>
+            <span class="ml-auto text-xs font-mono px-2.5 py-1 rounded-lg bg-white text-peach-700 border border-surface-border font-semibold">
+              ${filteredSteps.length} ${filteredSteps.length === 1 ? 'Step' : 'Steps'}
+            </span>
+          </div>
+          <div class="grid grid-cols-1 gap-3.5" id="chap-cards-${chap.id}"></div>
+        `;
+        container.appendChild(chapSection);
+
+        const cardsGrid = chapSection.querySelector(`#chap-cards-${chap.id}`);
+        filteredSteps.forEach(card => {
+          const cardEl = document.createElement('div');
+          const isSelected = selectedPacketIndex === card.index;
+          cardEl.className = `group rounded-2xl p-5 transition-all cursor-pointer border bg-white ${
+            isSelected 
+              ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg' 
+              : 'border-surface-border hover:border-peach-300 hover:bg-surface-cardHover soft-shadow'
+          }`;
+          cardEl.onclick = () => {
+            selectedPacketIndex = card.index;
+            renderStoryCards();
+          };
+
+          cardEl.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="font-mono text-xs font-bold text-surface-textMuted bg-peach-50 px-2 py-0.5 rounded-md border border-peach-200">#${card.index}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs ${getProtoBadge(card.protocol)}">${card.protocol}</span>
+                <h4 class="text-sm font-bold text-surface-textPrimary group-hover:text-peach-700 transition-colors">${card.title}</h4>
+                ${card.has_anomaly ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">RST Anomaly</span>' : ''}
+                ${card.is_cleartext ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">Cleartext</span>' : ''}
+              </div>
+              <div class="flex items-center gap-3 text-xs text-surface-textMuted font-mono">
+                <span>+${card.timestamp_ms} ms</span>
+                <span>${card.length} bytes</span>
+                <button onclick="event.stopPropagation(); selectedPacketIndex = ${card.index}; switchView('inspector');" class="px-3 py-1 rounded-xl bg-peach-50 hover:bg-peach-100 text-peach-800 border border-peach-200 hover:border-peach-400 flex items-center gap-1.5 transition-all font-semibold">
+                  <span>OSI Desk</span>
+                  <svg class="w-3.5 h-3.5 text-peach-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Plain English Narrative -->
+            <div class="bg-peach-50/60 p-3.5 rounded-xl border border-surface-borderLight mb-3.5 text-xs text-surface-textSecondary leading-relaxed font-normal">
+              ${card.narrative}
+            </div>
+
+            <!-- Endpoint Capsule -->
+            <div class="flex items-center justify-between text-xs font-mono pt-1 text-surface-textMuted">
+              <div class="flex items-center gap-2 bg-peach-50/70 px-3 py-1.5 rounded-xl border border-surface-border">
+                <span class="w-2 h-2 rounded-full bg-peach-500 animate-pulse"></span>
+                <span class="text-peach-800 font-bold">${card.src_ip}</span>
+                ${card.src_port ? `<span class="text-surface-textMuted">:${card.src_port}</span>` : ''}
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-white text-surface-textSecondary border border-surface-border font-sans">${card.src_role}</span>
+              </div>
+              <span class="text-peach-500 font-bold">&rarr;</span>
+              <div class="flex items-center gap-2 bg-peach-50/70 px-3 py-1.5 rounded-xl border border-surface-border">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span class="text-amber-800 font-bold">${card.dst_ip}</span>
+                ${card.dst_port ? `<span class="text-surface-textMuted">:${card.dst_port}</span>` : ''}
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-white text-surface-textSecondary border border-surface-border font-sans">${card.dst_role}</span>
+              </div>
+            </div>
+          `;
+          cardsGrid.appendChild(cardEl);
+        });
+      });
+    }
+
+    function renderSequenceFlow() {
+      if (!currentData || !currentData.sequence_flow) return;
+      const hostsHeader = document.getElementById('flow-hosts-header');
+      hostsHeader.innerHTML = Object.values(currentData.host_roles || {}).map(h => `
+        <div class="bg-peach-50/70 p-3.5 rounded-2xl border border-surface-border text-center space-y-1 soft-shadow">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-peach-800 border border-peach-200">
+            ${h.role}
+          </span>
+          <div class="font-mono text-xs font-bold text-surface-textPrimary">${h.ip}</div>
+          ${h.hostname ? `<div class="text-[11px] text-peach-600 truncate">${h.hostname}</div>` : ''}
+        </div>
+      `).join('');
+
+      const stepsContainer = document.getElementById('flow-steps-container');
+      stepsContainer.innerHTML = currentData.sequence_flow.map(item => {
+        const isSel = selectedPacketIndex === item.packet_index;
+        return `
+          <div onclick="selectedPacketIndex = ${item.packet_index}; renderSequenceFlow();" class="p-4 rounded-2xl border transition-all cursor-pointer bg-white ${
+            isSel ? 'border-peach-500 ring-2 ring-peach-400/30 soft-shadow-lg' : 'border-surface-border hover:border-peach-300 soft-shadow'
+          }">
+            <div class="flex items-center justify-between gap-3 mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-surface-textMuted bg-peach-50 px-2 py-0.5 rounded-md text-[11px] border border-peach-200">#${item.packet_index}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] ${getProtoBadge(item.protocol)}">${item.protocol}</span>
+                <span class="text-surface-textPrimary font-sans font-bold text-xs">${item.label}</span>
+              </div>
+              <span class="text-surface-textMuted text-[11px]">+${item.timestamp_ms} ms</span>
+            </div>
+
+            <div class="flex items-center gap-3 bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+              <div class="w-1/3 text-left truncate text-peach-800 font-bold">
+                ${item.from_host} <span class="text-surface-textMuted text-[10px] font-normal">(${item.from_role})</span>
+              </div>
+              <div class="flex-1 flex items-center justify-center relative">
+                <div class="w-full h-0.5 bg-gradient-to-r from-peach-400 via-amber-400 to-peach-500"></div>
+                <span class="text-peach-600 -ml-2 font-black">&gt;</span>
+              </div>
+              <div class="w-1/3 text-right truncate text-amber-800 font-bold">
+                ${item.to_host} <span class="text-surface-textMuted text-[10px] font-normal">(${item.to_role})</span>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-surface-textSecondary font-sans mt-2.5 italic">
+              ${item.detail}
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderInspectorDesk() {
+      if (!currentData || !currentData.packets) return;
+      document.getElementById('inspector-packet-count').innerText = `${currentData.packets.length} pkts`;
+
+      const listContainer = document.getElementById('inspector-packet-list');
+      listContainer.innerHTML = currentData.packets.map(p => {
+        const isSel = p.index === selectedPacketIndex;
+        return `
+          <button onclick="selectedPacketIndex = ${p.index}; renderInspectorDesk();" class="w-full text-left p-2.5 rounded-xl border text-xs font-mono transition-all flex items-center justify-between ${
+            isSel ? 'bg-peach-100 text-peach-900 border-peach-400 font-bold shadow-sm' : 'bg-white text-surface-textSecondary border-surface-border hover:bg-peach-50/70 hover:border-peach-300'
+          }">
+            <div class="flex items-center gap-2 truncate">
+              <span class="font-bold text-surface-textMuted">#${p.index}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] ${getProtoBadge(p.protocol)}">${p.protocol}</span>
+              <span class="truncate text-surface-textPrimary">${p.src_ip} &rarr; ${p.dst_ip}</span>
+            </div>
+            <span class="text-surface-textMuted text-[10px] shrink-0">+${p.relative_time_ms}ms</span>
+          </button>
+        `;
+      }).join('');
+
+      const pkt = currentData.packets.find(p => p.index === selectedPacketIndex) || currentData.packets[0];
+      const detailsDesk = document.getElementById('inspector-desk-details');
+      if (!pkt) return;
+
+      let html = `
+        <div class="bg-white border border-surface-border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 soft-shadow">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg font-black font-mono text-peach-700">Packet #${pkt.index}</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs ${getProtoBadge(pkt.protocol)}">${pkt.protocol}</span>
+            </div>
+            <p class="text-xs text-surface-textSecondary mt-1 font-medium">${pkt.summary}</p>
+          </div>
+          <div class="flex items-center gap-2.5 text-xs font-mono text-surface-textMuted bg-peach-50 px-3.5 py-1.5 rounded-xl border border-surface-border">
+            <span>Offset: <strong class="text-peach-700">${pkt.relative_time_ms} ms</strong></span>
+            <span>•</span>
+            <span>Size: <strong class="text-emerald-700">${pkt.length} bytes</strong></span>
+          </div>
+        </div>
+      `;
+
+      // LAYER 7 (Application)
+      if (pkt.l7) {
+        html += `
+          <div class="bg-white border border-emerald-200 rounded-3xl p-5 space-y-3 soft-shadow">
+            <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center text-xs font-black">L7</div>
+                <h4 class="text-sm font-bold text-emerald-800">${pkt.l7.name}</h4>
+              </div>
+              <span class="text-xs font-mono text-emerald-700 uppercase font-bold tracking-wider">Application Layer</span>
+            </div>
+            ${pkt.l7.protocol === 'HTTP' ? `
+              <div class="space-y-2 text-xs font-mono bg-peach-50/50 p-3.5 rounded-2xl border border-surface-border">
+                <div class="text-peach-800 font-bold">${pkt.l7.type === 'request' ? `${pkt.l7.method} ${pkt.l7.uri} ${pkt.l7.version}` : `${pkt.l7.version} ${pkt.l7.status_code} ${pkt.l7.reason}`}</div>
+                ${pkt.l7.host ? `<div class="text-surface-textSecondary">Host: ${pkt.l7.host}</div>` : ''}
+                ${pkt.l7.content_type ? `<div class="text-surface-textSecondary">Content-Type: ${pkt.l7.content_type}</div>` : ''}
+                ${pkt.l7.body_preview ? `<div class="mt-2 pt-2 border-t border-surface-border text-rose-800 font-bold bg-rose-50 p-2.5 rounded-xl">Payload: ${pkt.l7.body_preview}</div>` : ''}
+              </div>
+            ` : ''}
+            ${pkt.l7.protocol === 'DNS' ? `
+              <div class="space-y-2 text-xs font-mono bg-peach-50/50 p-3.5 rounded-2xl border border-surface-border">
+                <div class="text-amber-800 font-bold">${pkt.l7.is_response ? 'DNS Query Response' : 'DNS Query Request'} (ID: ${pkt.l7.id})</div>
+                ${(pkt.l7.queries || []).map(q => `<div class="text-surface-textSecondary">Question: <strong class="text-peach-700">${q.name}</strong> [${q.type}]</div>`).join('')}
+                ${(pkt.l7.answers || []).map(a => `<div class="text-emerald-700">Answer: ${a.name} &rarr; <strong>${a.data}</strong> (TTL ${a.ttl}s)</div>`).join('')}
+              </div>
+            ` : ''}
+            ${pkt.l7.protocol === 'TLS' ? `
+              <div class="space-y-2 text-xs font-mono bg-peach-50/50 p-3.5 rounded-2xl border border-surface-border">
+                <div class="text-emerald-800 font-bold">TLS Content: ${pkt.l7.content_type} (${pkt.l7.record_version})</div>
+                ${pkt.l7.handshake_type ? `<div class="text-peach-700">Handshake Type: <strong>${pkt.l7.handshake_type}</strong></div>` : ''}
+                ${pkt.l7.sni ? `<div class="text-amber-800">Server Name Indication (SNI): <strong>${pkt.l7.sni}</strong></div>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // LAYER 4 (Transport)
+      if (pkt.l4) {
+        html += `
+          <div class="bg-white border border-peach-200 rounded-3xl p-5 space-y-3 soft-shadow">
+            <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-peach-100 text-peach-800 border border-peach-300 flex items-center justify-center text-xs font-black">L4</div>
+                <h4 class="text-sm font-bold text-peach-800">${pkt.l4.name}</h4>
+              </div>
+              <span class="text-xs font-mono text-peach-700 uppercase font-bold tracking-wider">Transport Layer</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">Source Port</span>
+                <span class="text-peach-800 font-bold text-sm">${pkt.l4.src_port}</span> ${pkt.l4.src_service ? `<span class="text-surface-textMuted">(${pkt.l4.src_service})</span>` : ''}
+              </div>
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">Destination Port</span>
+                <span class="text-amber-800 font-bold text-sm">${pkt.l4.dst_port}</span> ${pkt.l4.dst_service ? `<span class="text-surface-textMuted">(${pkt.l4.dst_service})</span>` : ''}
+              </div>
+              ${pkt.l4.seq !== undefined ? `
+                <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                  <span class="text-surface-textMuted text-[10px] block font-bold">Sequence No</span>
+                  <span class="text-surface-textPrimary font-bold">${pkt.l4.seq}</span>
+                </div>
+                <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                  <span class="text-surface-textMuted text-[10px] block font-bold">Ack No</span>
+                  <span class="text-surface-textPrimary font-bold">${pkt.l4.ack}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            ${pkt.l4.flags_map ? `
+              <div>
+                <span class="text-[10px] font-bold text-peach-700 uppercase tracking-wider block mb-1.5">TCP Flags Dissection:</span>
+                <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 font-mono text-xs text-center">
+                  ${Object.entries(pkt.l4.flags_map).map(([flg, active]) => `
+                    <div class="p-2 rounded-xl border transition-all ${
+                      active 
+                        ? (flg === 'RST' ? 'bg-rose-100 text-rose-800 border-rose-300 font-extrabold' : flg === 'SYN' ? 'bg-peach-100 text-peach-800 border-peach-400 font-extrabold' : flg === 'FIN' ? 'bg-amber-100 text-amber-800 border-amber-300 font-extrabold' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold')
+                        : 'bg-peach-50/40 text-stone-400 border-surface-border'
+                    }">
+                      <div class="text-[10px]">${flg}</div>
+                      <div class="text-xs font-black">${active ? '1' : '0'}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // LAYER 3 (Network)
+      if (pkt.l3) {
+        html += `
+          <div class="bg-white border border-amber-200 rounded-3xl p-5 space-y-3 soft-shadow">
+            <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 flex items-center justify-center text-xs font-black">L3</div>
+                <h4 class="text-sm font-bold text-amber-800">${pkt.l3.name}</h4>
+              </div>
+              <span class="text-xs font-mono text-amber-700 uppercase font-bold tracking-wider">Network Layer</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">Source IP</span>
+                <span class="text-peach-800 font-bold">${pkt.l3.src_ip}</span>
+              </div>
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">Destination IP</span>
+                <span class="text-amber-800 font-bold">${pkt.l3.dst_ip}</span>
+              </div>
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">TTL</span>
+                <span class="text-surface-textPrimary font-bold">${pkt.l3.ttl || 64}</span>
+              </div>
+              <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                <span class="text-surface-textMuted text-[10px] block font-bold">Protocol</span>
+                <span class="text-surface-textPrimary font-bold">${pkt.l3.protocol}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // LAYER 2 (Data Link)
+      if (pkt.l2 || pkt.arp) {
+        html += `
+          <div class="bg-white border border-purple-200 rounded-3xl p-5 space-y-3 soft-shadow">
+            <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-purple-100 text-purple-800 border border-purple-300 flex items-center justify-center text-xs font-black">L2</div>
+                <h4 class="text-sm font-bold text-purple-800">${pkt.l2 ? pkt.l2.name : pkt.arp.name}</h4>
+              </div>
+              <span class="text-xs font-mono text-purple-700 uppercase font-bold tracking-wider">Data Link Layer</span>
+            </div>
+            ${pkt.arp ? `
+              <div class="bg-peach-50/50 p-3.5 rounded-2xl border border-surface-border text-xs font-mono space-y-1">
+                <div class="text-purple-800 font-bold">${pkt.arp.operation}</div>
+                <div class="text-surface-textSecondary">Sender: IP <strong>${pkt.arp.src_ip}</strong> (MAC: ${pkt.arp.src_mac})</div>
+                <div class="text-surface-textSecondary">Target: IP <strong>${pkt.arp.dst_ip}</strong> (MAC: ${pkt.arp.dst_mac})</div>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+                <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                  <span class="text-surface-textMuted text-[10px] block font-bold">Source MAC</span>
+                  <span class="text-surface-textPrimary font-bold">${pkt.l2?.src_mac}</span>
+                </div>
+                <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                  <span class="text-surface-textMuted text-[10px] block font-bold">Destination MAC</span>
+                  <span class="text-surface-textPrimary font-bold">${pkt.l2?.dst_mac}</span>
+                </div>
+                <div class="bg-peach-50/50 p-3 rounded-xl border border-surface-border">
+                  <span class="text-surface-textMuted text-[10px] block font-bold">EtherType</span>
+                  <span class="text-peach-700 font-bold">${pkt.l2?.ethertype}</span>
+                </div>
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      // RAW HEX & ASCII DISSECTOR
+      if (pkt.hex_dump) {
+        html += `
+          <div class="bg-white border border-surface-border rounded-3xl p-5 space-y-3 soft-shadow">
+            <div class="flex items-center justify-between border-b border-surface-border pb-2.5">
+              <h4 class="text-sm font-bold text-surface-textPrimary flex items-center gap-2 font-mono">
+                <span class="w-2 h-2 rounded-full bg-peach-500"></span>
+                Raw Hex & ASCII Dissector (${pkt.hex_dump.length} bytes)
+              </h4>
+              <button onclick="navigator.clipboard.writeText('${pkt.hex_dump.hex_string || ''}')" class="px-3 py-1 rounded-xl bg-peach-50 hover:bg-peach-100 text-xs font-mono text-peach-800 border border-peach-200 transition-all font-semibold">
+                Copy Raw Hex
+              </button>
+            </div>
+            <div class="bg-[#211e1c] rounded-2xl p-4 font-mono text-xs overflow-x-auto border border-stone-800 leading-relaxed max-h-72">
+              <div class="text-peach-300/60 pb-1.5 border-b border-stone-800 flex justify-between font-bold text-[11px]">
+                <span>OFFSET</span>
+                <span>HEX BYTES (00 - 0F)</span>
+                <span>ASCII REPRESENTATION</span>
+              </div>
+              <div class="pt-2 space-y-1">
+                ${(pkt.hex_dump.lines || []).map(ln => `
+                  <div class="flex gap-4 hover:bg-stone-800/80 px-2 py-0.5 rounded transition-colors">
+                    <span class="text-peach-400 font-bold select-none">${ln.offset}</span>
+                    <span class="text-stone-200 tracking-wider flex-1">${ln.hex}</span>
+                    <span class="text-emerald-400 select-none border-l border-stone-700 pl-3">${ln.ascii}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      detailsDesk.innerHTML = html;
+    }
+
+    function updateScenarioButtons() {
+      fetch('/api/samples')
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('sample-buttons-container');
+          const samples = data.samples || [];
+          container.innerHTML = `
+            <span class="text-[11px] font-bold text-peach-700 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+              ⚡ Scenarios:
+            </span>
+          ` + samples.map(s => `
+            <button onclick="loadSample('${s.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 border ${
+              activeSampleId === s.id 
+                ? 'bg-peach-500 text-white border-peach-600 shadow-md shadow-peach-500/20 font-bold' 
+                : 'bg-white text-surface-textSecondary border-surface-border hover:border-peach-300 hover:text-peach-800'
+            }">
+              ${s.title}
+            </button>
+          `).join('');
+        })
+        .catch(console.error);
+    }
+
+    function exportReportJSON() {
+      if (!currentData) return;
+      const jsonStr = JSON.stringify(currentData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `protocol_archaeology_${currentData.filename || 'report'}.json`;
+      a.click();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSample('web_browsing_full.pcap');
+    });
+  </script>
+</body>
+</html>
