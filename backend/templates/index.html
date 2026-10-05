@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Protocol Archaeology - Packet Story and OSI Inspector</title>
-  <meta name="description" content="Translates network packet captures into clear, visual, step-by-step narrative stories." />
+  <title>Protocol Archaeology - Visual Packet Story</title>
+  <meta name="description" content="Translates raw network packet captures into a clean, easy step-by-step narrative." />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,28 +13,17 @@
       theme: {
         extend: {
           colors: {
-            peach: {
-              50: '#fffaf6',
-              100: '#fff2ea',
-              200: '#ffe4d5',
-              300: '#fecbb2',
-              400: '#fb923c',
-              500: '#f97316',
-              600: '#ea580c',
-              700: '#c2410c',
-              800: '#9a3412',
-            },
-            neutral: {
-              card: '#ffffff',
-              border: '#f2e5dc',
-              text: '#292524',
-              muted: '#78716c',
-              bg: '#faf6f2',
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
             }
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
           }
         }
       }
@@ -49,196 +38,133 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #faf6f2;
-      color: #292524;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
     .font-mono {
-      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-family: 'JetBrains Mono', monospace;
     }
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #faf6f2;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #fecbb2;
-      border-radius: 4px;
+    .dropzone-active {
+      border-color: #0284c7 !important;
+      background-color: #f0f9ff !important;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
-  
-  <!-- CLEAN TOP NAVBAR -->
-  <header class="bg-white border-b border-neutral-border px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-peach-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-        PA
-      </div>
-      <div>
-        <h1 class="text-base font-bold text-neutral-text leading-tight">Protocol Archaeology</h1>
-        <p class="text-xs text-neutral-muted">Network Packet Story and OSI Dissector</p>
-      </div>
-    </div>
+<body class="min-h-screen flex flex-col antialiased bg-slate-50 text-slate-900">
 
-    <!-- MAIN VIEW NAVIGATION -->
-    <nav class="flex items-center gap-1 bg-neutral-bg p-1 rounded-xl border border-neutral-border">
-      <button id="tab-btn-story" onclick="switchView('story')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-peach-700 shadow-sm border border-neutral-border transition-all">
-        Story Cards
-      </button>
-      <button id="tab-btn-flow" onclick="switchView('flow')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-muted hover:text-neutral-text transition-all">
-        Sequence Flow
-      </button>
-      <button id="tab-btn-inspector" onclick="switchView('inspector')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-muted hover:text-neutral-text transition-all">
-        OSI Inspector
-      </button>
-      <button id="tab-btn-guide" onclick="switchView('guide')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-muted hover:text-neutral-text transition-all">
-        Protocol Guide
-      </button>
-    </nav>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-8 py-3.5">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          🔍
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-900 leading-tight">Protocol Archaeology</h1>
+          <p class="text-xs text-slate-500">Wireshark packet captures translated into plain English</p>
+        </div>
+      </div>
 
-    <!-- UPLOAD BUTTON -->
-    <div class="flex items-center gap-2">
-      <input type="file" id="file-input" accept=".pcap,.pcapng,.cap" class="hidden" onchange="handleFileUpload(this.files[0])" />
-      <button onclick="document.getElementById('file-input').click()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-peach-500 hover:bg-peach-600 text-white shadow-sm transition-all">
-        Upload PCAP
-      </button>
+      <div class="flex items-center gap-2">
+        <input type="file" id="file-input" accept=".pcap,.pcapng,.cap" class="hidden" onchange="handleFileUpload(this.files[0])" />
+        <button onclick="document.getElementById('file-input').click()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Upload PCAP
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- SCENARIO SELECTOR BAR -->
-  <section class="bg-white/60 border-b border-neutral-border px-6 py-2.5">
-    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-      <div class="flex items-center gap-2 overflow-x-auto">
-        <span class="font-semibold text-neutral-muted">Sample Scenarios:</span>
-        <button onclick="loadSample('web_browsing_full.pcap')" id="sample-btn-web" class="px-3 py-1 rounded-lg border border-peach-300 bg-peach-50 text-peach-800 font-semibold shadow-sm transition-all">
-          Web Browsing (DNS + TLS)
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 flex-1 space-y-5" id="drop-area">
+
+    <!-- SAMPLES / SCENARIO SELECTOR -->
+    <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-xs font-semibold text-slate-500 mr-1">Sample Captures:</span>
+        <button onclick="loadSample('web_browsing_full.pcap')" id="btn-sample-web" class="px-3 py-1.5 rounded-lg text-xs font-medium border bg-slate-900 text-white border-slate-900 transition-all">
+          🌐 Web Browsing (TLS)
         </button>
-        <button onclick="loadSample('cleartext_http_audit.pcap')" id="sample-btn-http" class="px-3 py-1 rounded-lg border border-neutral-border bg-white text-neutral-text hover:bg-peach-50/50 transition-all">
-          Cleartext HTTP Leak
+        <button onclick="loadSample('cleartext_http_audit.pcap')" id="btn-sample-http" class="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-slate-200 text-slate-600 hover:bg-slate-50 transition-all">
+          ⚠️ Cleartext HTTP Leak
         </button>
-        <button onclick="loadSample('tcp_reset_anomaly.pcap')" id="sample-btn-rst" class="px-3 py-1 rounded-lg border border-neutral-border bg-white text-neutral-text hover:bg-peach-50/50 transition-all">
-          TCP Reset Anomaly
+        <button onclick="loadSample('tcp_reset_anomaly.pcap')" id="btn-sample-rst" class="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-slate-200 text-slate-600 hover:bg-slate-50 transition-all">
+          ⚡ TCP Reset Error
         </button>
       </div>
-
-      <div id="file-info-label" class="font-mono text-neutral-muted text-xs">
-        Loading capture...
+      <div id="file-indicator" class="font-mono text-xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200 self-end sm:self-auto">
+        web_browsing_full.pcap
       </div>
     </div>
-  </section>
 
-  <!-- MAIN BODY -->
-  <main class="max-w-6xl mx-auto w-full p-6 flex-1">
-    
-    <!-- LOADING SPINNER -->
-    <div id="loading-state" class="hidden py-24 text-center space-y-3">
-      <div class="w-10 h-10 border-3 border-peach-200 border-t-peach-500 rounded-full animate-spin mx-auto"></div>
-      <p class="text-xs text-neutral-muted font-medium">Analyzing packet capture...</p>
+    <!-- LOADING STATE -->
+    <div id="loading-spinner" class="hidden py-16 text-center space-y-3 bg-white rounded-2xl border border-slate-200">
+      <div class="w-8 h-8 border-3 border-slate-200 border-t-slate-900 rounded-full animate-spin mx-auto"></div>
+      <p class="text-xs font-medium text-slate-500">Dissecting packet capture layers...</p>
     </div>
 
-    <!-- MAIN VIEWS CONTAINER -->
-    <div id="views-container" class="space-y-6">
+    <!-- CONTENT CONTAINER -->
+    <div id="main-content" class="space-y-5">
 
-      <!-- TOP SUMMARY BAR -->
-      <div id="summary-metrics" class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-neutral-border shadow-sm">
-        <div>
-          <span class="text-[11px] font-semibold text-neutral-muted uppercase">Packets</span>
-          <div id="metric-packets" class="text-xl font-bold font-mono text-peach-700 mt-0.5">0</div>
+      <!-- SUMMARY BANNER -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Capture Summary</div>
+            <div id="summary-headline" class="text-sm font-semibold text-slate-900 mt-0.5">
+              Analyzing capture data...
+            </div>
+          </div>
+          <div id="security-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="security-text">Encrypted Stream</span>
+          </div>
         </div>
-        <div>
-          <span class="text-[11px] font-semibold text-neutral-muted uppercase">Duration</span>
-          <div id="metric-duration" class="text-xl font-bold font-mono text-neutral-text mt-0.5">0 ms</div>
-        </div>
-        <div>
-          <span class="text-[11px] font-semibold text-neutral-muted uppercase">Data Transferred</span>
-          <div id="metric-bytes" class="text-xl font-bold font-mono text-neutral-text mt-0.5">0 KB</div>
-        </div>
-        <div>
-          <span class="text-[11px] font-semibold text-neutral-muted uppercase">Security Status</span>
-          <div id="metric-security" class="text-xs font-bold font-mono mt-1 text-emerald-700">Encrypted</div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span class="text-slate-400 text-[10px] block font-medium uppercase">Total Packets</span>
+            <span id="stat-packets" class="font-bold text-slate-800 text-sm font-mono">0</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span class="text-slate-400 text-[10px] block font-medium uppercase">Duration</span>
+            <span id="stat-duration" class="font-bold text-slate-800 text-sm font-mono">0 ms</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span class="text-slate-400 text-[10px] block font-medium uppercase">Devices Found</span>
+            <span id="stat-devices" class="font-bold text-slate-800 text-sm font-mono">0</span>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span class="text-slate-400 text-[10px] block font-medium uppercase">Protocols</span>
+            <span id="stat-protocols" class="font-bold text-slate-800 text-xs truncate block font-mono">-</span>
+          </div>
         </div>
       </div>
 
-      <!-- VIEW 1: STORY CARDS -->
-      <div id="view-story" class="view-panel space-y-6">
-        <div id="story-list-container" class="space-y-6">
-          <!-- Rendered chapters and story cards -->
-        </div>
-      </div>
-
-      <!-- VIEW 2: SEQUENCE FLOW -->
-      <div id="view-flow" class="view-panel hidden bg-white border border-neutral-border rounded-2xl p-6 space-y-6 shadow-sm">
-        <div class="border-b border-neutral-border pb-3">
-          <h3 class="text-sm font-bold text-neutral-text">Host Interaction Sequence</h3>
-          <p class="text-xs text-neutral-muted">Chronological packet communication between network devices.</p>
+      <!-- STORY TIMELINE -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Step-by-Step Story Timeline</h2>
+          <span class="text-xs text-slate-400">Click any card to inspect packet layers</span>
         </div>
 
-        <div id="sequence-steps-container" class="space-y-3 font-mono text-xs">
-          <!-- Rendered sequence steps -->
-        </div>
-      </div>
-
-      <!-- VIEW 3: OSI INSPECTOR -->
-      <div id="view-inspector" class="view-panel hidden grid grid-cols-1 md:grid-cols-12 gap-6">
-        <!-- Left Packet List -->
-        <div class="md:col-span-4 bg-white border border-neutral-border rounded-2xl p-4 space-y-2 max-h-[700px] flex flex-col shadow-sm">
-          <div class="text-xs font-bold text-neutral-text pb-2 border-b border-neutral-border flex justify-between">
-            <span>Packets</span>
-            <span id="inspector-pkt-count" class="font-mono text-neutral-muted">0</span>
-          </div>
-          <div id="inspector-list" class="overflow-y-auto space-y-1 flex-1 pr-1 font-mono text-xs"></div>
-        </div>
-
-        <!-- Right OSI Layer Accordion and Hex -->
-        <div id="inspector-desk" class="md:col-span-8 space-y-4">
-          <!-- Selected packet layers -->
-        </div>
-      </div>
-
-      <!-- VIEW 4: PROTOCOL GUIDE -->
-      <div id="view-guide" class="view-panel hidden space-y-4">
-        <div class="bg-white border border-neutral-border rounded-2xl p-6 space-y-2 shadow-sm">
-          <h3 class="text-sm font-bold text-neutral-text">Network Protocol Reference</h3>
-          <p class="text-xs text-neutral-muted">Quick handbook of common networking protocols and headers.</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div class="bg-white border border-neutral-border rounded-2xl p-5 space-y-2 shadow-sm">
-            <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-bold border border-purple-200">ARP (Layer 2)</span>
-            <h4 class="font-bold text-neutral-text">Address Resolution Protocol</h4>
-            <p class="text-neutral-muted leading-relaxed">Resolves Layer 3 IP addresses into Layer 2 physical MAC addresses on local subnets.</p>
-          </div>
-
-          <div class="bg-white border border-neutral-border rounded-2xl p-5 space-y-2 shadow-sm">
-            <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">DNS (Layer 7)</span>
-            <h4 class="font-bold text-neutral-text">Domain Name System</h4>
-            <p class="text-neutral-muted leading-relaxed">Translates human-readable domain names into IP addresses. Standard DNS runs over unencrypted UDP 53.</p>
-          </div>
-
-          <div class="bg-white border border-neutral-border rounded-2xl p-5 space-y-2 shadow-sm">
-            <span class="px-2 py-0.5 rounded bg-peach-50 text-peach-800 font-bold border border-peach-200">TCP Handshake (Layer 4)</span>
-            <h4 class="font-bold text-neutral-text">Connection Establishment</h4>
-            <p class="text-neutral-muted leading-relaxed">Establishes reliable state via SYN (Initiate), SYN-ACK (Acknowledge and Reply), and ACK (Confirm).</p>
-          </div>
-
-          <div class="bg-white border border-neutral-border rounded-2xl p-5 space-y-2 shadow-sm">
-            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">TLS (Layer 7)</span>
-            <h4 class="font-bold text-neutral-text">Transport Layer Security</h4>
-            <p class="text-neutral-muted leading-relaxed">Negotiates cryptographic ciphers and encrypts application data payloads to prevent eavesdropping.</p>
-          </div>
+        <div id="story-timeline" class="space-y-3">
+          <!-- Story Cards dynamically rendered here -->
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- JAVASCRIPT ENGINE -->
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-200 bg-white px-6 py-4 text-center text-xs text-slate-400 mt-auto">
+    Protocol Archaeology Tool • Translates network packets into clear human stories.
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     let activeData = null;
-    let selectedPacketIndex = 1;
-    let activeSample = 'web_browsing_full.pcap';
+    let expandedIndices = new Set();
 
     function getBadgeClass(proto) {
       switch ((proto || '').toUpperCase()) {
@@ -246,44 +172,41 @@
         case 'HTTP': return 'bg-rose-50 text-rose-800 border-rose-200';
         case 'TLS':
         case 'HTTPS': return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-        case 'TCP': return 'bg-peach-50 text-peach-800 border-peach-200';
+        case 'TCP': return 'bg-sky-50 text-sky-800 border-sky-200';
         case 'ARP': return 'bg-purple-50 text-purple-800 border-purple-200';
-        default: return 'bg-stone-100 text-stone-700 border-stone-200';
+        default: return 'bg-slate-100 text-slate-700 border-slate-200';
       }
     }
 
-    function switchView(viewName) {
-      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
-      const panel = document.getElementById('view-' + viewName);
-      if (panel) panel.classList.remove('hidden');
-
-      const tabs = ['story', 'flow', 'inspector', 'guide'];
-      tabs.forEach(t => {
-        const btn = document.getElementById('tab-btn-' + t);
-        if (btn) {
-          if (t === viewName) {
-            btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-peach-700 shadow-sm border border-neutral-border';
-          } else {
-            btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-muted hover:text-neutral-text';
-          }
-        }
-      });
-
-      if (viewName === 'inspector') renderInspector();
-      if (viewName === 'flow') renderSequence();
+    function toggleDetails(index) {
+      if (expandedIndices.has(index)) {
+        expandedIndices.delete(index);
+      } else {
+        expandedIndices.add(index);
+      }
+      renderStory();
     }
 
     function loadSample(filename) {
-      activeSample = filename;
       showLoading(true);
 
-      // Update button highlights
-      document.querySelectorAll('[id^="sample-btn-"]').forEach(btn => {
-        btn.className = 'px-3 py-1 rounded-lg border border-neutral-border bg-white text-neutral-text hover:bg-peach-50/50';
+      // Button styling
+      const buttons = {
+        'web_browsing_full.pcap': 'btn-sample-web',
+        'cleartext_http_audit.pcap': 'btn-sample-http',
+        'tcp_reset_anomaly.pcap': 'btn-sample-rst'
+      };
+
+      Object.entries(buttons).forEach(([fname, btnId]) => {
+        const el = document.getElementById(btnId);
+        if (el) {
+          if (filename === fname) {
+            el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium border bg-slate-900 text-white border-slate-900 transition-all';
+          } else {
+            el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-slate-200 text-slate-600 hover:bg-slate-50 transition-all';
+          }
+        }
       });
-      if (filename.includes('web')) document.getElementById('sample-btn-web').className = 'px-3 py-1 rounded-lg border border-peach-300 bg-peach-50 text-peach-800 font-semibold shadow-sm';
-      if (filename.includes('http')) document.getElementById('sample-btn-http').className = 'px-3 py-1 rounded-lg border border-peach-300 bg-peach-50 text-peach-800 font-semibold shadow-sm';
-      if (filename.includes('reset')) document.getElementById('sample-btn-rst').className = 'px-3 py-1 rounded-lg border border-peach-300 bg-peach-50 text-peach-800 font-semibold shadow-sm';
 
       fetch('/api/samples/' + encodeURIComponent(filename))
         .then(res => res.json())
@@ -316,211 +239,162 @@
     }
 
     function showLoading(isLoading) {
-      document.getElementById('loading-state').classList.toggle('hidden', !isLoading);
-      document.getElementById('views-container').classList.toggle('hidden', isLoading);
+      document.getElementById('loading-spinner').classList.toggle('hidden', !isLoading);
+      document.getElementById('main-content').classList.toggle('hidden', isLoading);
     }
 
     function populateData(data) {
       activeData = data;
-      selectedPacketIndex = 1;
+      expandedIndices.clear();
 
-      // File label and metrics
-      document.getElementById('file-info-label').innerText = `${data.filename || 'capture.pcap'} (${data.summary?.total_packets || 0} pkts)`;
-      document.getElementById('metric-packets').innerText = data.summary?.total_packets || 0;
-      document.getElementById('metric-duration').innerText = `${data.summary?.duration_ms || 0} ms`;
-      document.getElementById('metric-bytes').innerText = `${((data.summary?.total_bytes || 0) / 1024).toFixed(1)} KB`;
+      document.getElementById('file-indicator').innerText = data.filename || 'capture.pcap';
+      document.getElementById('stat-packets').innerText = data.summary?.total_packets || 0;
+      document.getElementById('stat-duration').innerText = (data.summary?.duration_ms || 0) + ' ms';
+      document.getElementById('stat-devices').innerText = Object.keys(data.host_roles || {}).length || 0;
       
+      const protocols = data.summary?.protocols || [];
+      document.getElementById('stat-protocols').innerText = protocols.join(', ') || 'TCP/IP';
+
       const sec = data.security_audit || {};
-      const secEl = document.getElementById('metric-security');
-      if (sec.cleartext_protocols?.length > 0) {
-        secEl.innerText = 'Cleartext Risk Detected';
-        secEl.className = 'text-xs font-bold font-mono mt-1 text-rose-700';
+      const pill = document.getElementById('security-pill');
+      const text = document.getElementById('security-text');
+
+      if (sec.cleartext_protocols && sec.cleartext_protocols.length > 0) {
+        pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 self-start sm:self-auto';
+        text.innerText = '⚠️ Cleartext / Insecure Data Detected';
       } else {
-        secEl.innerText = 'Encrypted (TLS)';
-        secEl.className = 'text-xs font-bold font-mono mt-1 text-emerald-700';
+        pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto';
+        text.innerText = '🔒 Encrypted Secure Stream';
       }
 
+      const totalPkts = data.summary?.total_packets || 0;
+      document.getElementById('summary-headline').innerText = `Decoded ${totalPkts} packets across ${protocols.join(', ')} communications.`;
+
       renderStory();
-      renderSequence();
-      renderInspector();
     }
 
     function renderStory() {
       if (!activeData || !activeData.chapters) return;
-      const container = document.getElementById('story-list-container');
-      container.innerHTML = '';
+      const timeline = document.getElementById('story-timeline');
+      timeline.innerHTML = '';
+
+      let globalStep = 1;
 
       activeData.chapters.forEach(chap => {
         if (!chap.steps || chap.steps.length === 0) return;
 
-        const chapEl = document.createElement('div');
-        chapEl.className = 'space-y-3';
-        chapEl.innerHTML = `
-          <div class="flex items-center justify-between border-b border-neutral-border pb-2">
-            <div>
-              <h3 class="text-sm font-bold text-neutral-text">${chap.name}</h3>
-              <p class="text-xs text-neutral-muted">${chap.description}</p>
-            </div>
-            <span class="text-xs font-mono font-medium text-neutral-muted bg-white px-2 py-0.5 rounded border border-neutral-border">${chap.steps.length} Steps</span>
-          </div>
-          <div class="space-y-2.5" id="chap-steps-${chap.id}"></div>
+        // Clean Chapter Divider
+        const chapDiv = document.createElement('div');
+        chapDiv.className = 'pt-4 pb-1.5 flex items-center gap-3';
+        chapDiv.innerHTML = `
+          <div class="h-px bg-slate-200 flex-1"></div>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">${chap.name}</span>
+          <div class="h-px bg-slate-200 flex-1"></div>
         `;
-        container.appendChild(chapEl);
+        timeline.appendChild(chapDiv);
 
-        const stepsBox = chapEl.querySelector(`#chap-steps-${chap.id}`);
         chap.steps.forEach(step => {
-          const isSelected = selectedPacketIndex === step.index;
+          const isExpanded = expandedIndices.has(step.index);
+          const pkt = (activeData.packets || []).find(p => p.index === step.index);
+
           const card = document.createElement('div');
-          card.className = `p-4 rounded-xl border bg-white cursor-pointer transition-all ${isSelected ? 'border-peach-500 ring-1 ring-peach-400/40 shadow-sm' : 'border-neutral-border hover:border-peach-200'}`;
-          card.onclick = () => {
-            selectedPacketIndex = step.index;
-            renderStory();
-          };
+          card.className = 'bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:border-slate-300';
+
+          let detailsHtml = '';
+          if (isExpanded && pkt) {
+            detailsHtml = `
+              <div class="bg-slate-50 border-t border-slate-200 p-4 text-xs space-y-3 font-mono">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-slate-400 block font-sans font-medium text-[10px] uppercase">Source Host</span>
+                    <span class="font-bold text-slate-900">${step.src_ip}${step.src_port ? ':' + step.src_port : ''}</span>
+                    <span class="text-slate-500 block text-[10px] mt-0.5">${step.src_role}</span>
+                  </div>
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-slate-400 block font-sans font-medium text-[10px] uppercase">Destination Host</span>
+                    <span class="font-bold text-slate-900">${step.dst_ip}${step.dst_port ? ':' + step.dst_port : ''}</span>
+                    <span class="text-slate-500 block text-[10px] mt-0.5">${step.dst_role}</span>
+                  </div>
+                </div>
+
+                ${pkt.l7 ? `
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 text-[11px] space-y-1 shadow-sm">
+                    <div class="font-bold font-sans text-slate-800">Application Layer (L7)</div>
+                    <div>Protocol: <span class="font-semibold text-slate-700">${pkt.l7.protocol}</span></div>
+                    ${pkt.l7.uri ? `<div>Request: <span class="text-sky-700 font-semibold">${pkt.l7.method} ${pkt.l7.uri}</span></div>` : ''}
+                    ${pkt.l7.host ? `<div>Host: <span class="text-slate-700">${pkt.l7.host}</span></div>` : ''}
+                    ${pkt.l7.sni ? `<div>TLS Server Name: <span class="text-emerald-700 font-semibold">${pkt.l7.sni}</span></div>` : ''}
+                    ${pkt.l7.dns_query ? `<div>DNS Query: <span class="text-amber-700 font-semibold">${pkt.l7.dns_query}</span></div>` : ''}
+                  </div>
+                ` : ''}
+
+                ${pkt.l4 ? `
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 text-[11px] shadow-sm">
+                    <div class="font-bold font-sans text-slate-800 mb-1">Transport Layer (L4)</div>
+                    <div class="text-slate-600">Flags: <span class="font-bold text-slate-800">${(pkt.l4.flags || []).join(', ') || 'None'}</span> | Seq: ${pkt.l4.seq || 0} | Ack: ${pkt.l4.ack || 0} | Window: ${pkt.l4.window || 0}</div>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }
 
           card.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-2 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="font-mono text-neutral-muted font-bold">#${step.index}</span>
-                <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getBadgeClass(step.protocol)}">${step.protocol}</span>
-                <span class="font-semibold text-neutral-text">${step.title}</span>
-                ${step.has_anomaly ? '<span class="px-1.5 py-0.2 rounded text-[10px] bg-rose-100 text-rose-800 font-bold border border-rose-200">Reset</span>' : ''}
+            <div onclick="toggleDetails(${step.index})" class="p-4 cursor-pointer select-none space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center font-mono">${globalStep}</span>
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${getBadgeClass(step.protocol)}">${step.protocol}</span>
+                  <span class="text-xs font-bold text-slate-900">${step.title}</span>
+                  ${step.has_anomaly ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-100 text-rose-800 font-bold border border-rose-200">Reset Error</span>' : ''}
+                </div>
+                <div class="flex items-center gap-2 text-slate-400 text-xs font-mono">
+                  <span>+${step.timestamp_ms} ms</span>
+                  <span class="text-slate-600 font-bold text-xs bg-slate-100 px-1.5 py-0.5 rounded">${isExpanded ? 'Hide' : 'Inspect'}</span>
+                </div>
               </div>
-              <div class="text-neutral-muted font-mono text-[11px] flex items-center gap-2">
-                <span>+${step.timestamp_ms} ms</span>
-                <button onclick="event.stopPropagation(); selectedPacketIndex = ${step.index}; switchView('inspector');" class="text-peach-700 font-semibold hover:underline">Inspect Layer</button>
+
+              <p class="text-xs text-slate-700 leading-relaxed">
+                ${step.narrative}
+              </p>
+
+              <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+                <span>${step.src_ip} <span class="text-slate-400 text-[10px]">(${step.src_role})</span></span>
+                <span class="text-slate-400 font-bold">→</span>
+                <span>${step.dst_ip} <span class="text-slate-400 text-[10px]">(${step.dst_role})</span></span>
               </div>
             </div>
-            <p class="text-xs text-neutral-text/90 leading-relaxed bg-neutral-bg/60 p-2.5 rounded-lg border border-neutral-border mb-2.5 font-normal">
-              ${step.narrative}
-            </p>
-            <div class="flex items-center justify-between text-xs font-mono text-neutral-muted">
-              <span>${step.src_ip}${step.src_port ? ':' + step.src_port : ''} (${step.src_role})</span>
-              <span>-&gt;</span>
-              <span>${step.dst_ip}${step.dst_port ? ':' + step.dst_port : ''} (${step.dst_role})</span>
-            </div>
+            ${detailsHtml}
           `;
-          stepsBox.appendChild(card);
+
+          timeline.appendChild(card);
+          globalStep++;
         });
       });
     }
 
-    function renderSequence() {
-      if (!activeData || !activeData.sequence_flow) return;
-      const container = document.getElementById('sequence-steps-container');
-      container.innerHTML = activeData.sequence_flow.map(item => {
-        const isSel = selectedPacketIndex === item.packet_index;
-        return `
-          <div onclick="selectedPacketIndex = ${item.packet_index}; renderSequence();" class="p-3 rounded-xl border bg-white cursor-pointer transition-all ${isSel ? 'border-peach-500 shadow-sm' : 'border-neutral-border hover:border-peach-200'}">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-              <div class="flex items-center gap-2">
-                <span class="text-neutral-muted font-bold">#${item.packet_index}</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${getBadgeClass(item.protocol)}">${item.protocol}</span>
-                <span class="font-sans font-semibold text-neutral-text text-xs">${item.label}</span>
-              </div>
-              <span class="text-neutral-muted text-[11px]">+${item.timestamp_ms} ms</span>
-            </div>
-            <div class="flex items-center justify-between bg-neutral-bg p-2 rounded-lg text-xs font-mono text-neutral-text">
-              <span class="truncate w-1/3">${item.from_host}</span>
-              <span class="text-peach-600 font-bold">&gt;&gt;&gt;</span>
-              <span class="truncate w-1/3 text-right">${item.to_host}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderInspector() {
-      if (!activeData || !activeData.packets) return;
-      document.getElementById('inspector-pkt-count').innerText = `${activeData.packets.length} pkts`;
-
-      const list = document.getElementById('inspector-list');
-      list.innerHTML = activeData.packets.map(p => {
-        const isSel = p.index === selectedPacketIndex;
-        return `
-          <button onclick="selectedPacketIndex = ${p.index}; renderInspector();" class="w-full text-left p-2 rounded-lg border flex items-center justify-between ${isSel ? 'bg-peach-50 border-peach-400 text-peach-900 font-bold' : 'border-neutral-border text-neutral-text hover:bg-neutral-bg'}">
-            <span class="truncate">#${p.index} [${p.protocol}] ${p.src_ip} -&gt; ${p.dst_ip}</span>
-            <span class="text-neutral-muted text-[10px] shrink-0">+${p.relative_time_ms}ms</span>
-          </button>
-        `;
-      }).join('');
-
-      const pkt = activeData.packets.find(p => p.index === selectedPacketIndex) || activeData.packets[0];
-      const desk = document.getElementById('inspector-desk');
-      if (!pkt) return;
-
-      let html = `
-        <div class="bg-white border border-neutral-border rounded-2xl p-4 flex items-center justify-between text-xs shadow-sm">
-          <div>
-            <span class="font-bold text-peach-700 font-mono text-sm">Packet #${pkt.index}</span>
-            <span class="ml-2 px-2 py-0.5 rounded font-bold border ${getBadgeClass(pkt.protocol)}">${pkt.protocol}</span>
-            <p class="text-neutral-muted mt-1">${pkt.summary}</p>
-          </div>
-          <span class="font-mono text-neutral-muted">${pkt.length} bytes</span>
-        </div>
-      `;
-
-      if (pkt.l7) {
-        html += `
-          <div class="bg-white border border-neutral-border rounded-2xl p-4 space-y-2 text-xs shadow-sm">
-            <div class="font-bold text-neutral-text border-b border-neutral-border pb-1">Layer 7 (Application Layer)</div>
-            <div class="font-mono bg-neutral-bg p-2.5 rounded-lg space-y-1">
-              <div><strong>Protocol:</strong> ${pkt.l7.protocol}</div>
-              ${pkt.l7.uri ? `<div><strong>URI:</strong> ${pkt.l7.method} ${pkt.l7.uri}</div>` : ''}
-              ${pkt.l7.host ? `<div><strong>Host:</strong> ${pkt.l7.host}</div>` : ''}
-              ${pkt.l7.sni ? `<div><strong>SNI:</strong> ${pkt.l7.sni}</div>` : ''}
-              ${pkt.l7.summary ? `<div><strong>Summary:</strong> ${pkt.l7.summary}</div>` : ''}
-            </div>
-          </div>
-        `;
+    // Drag and Drop PCAP file upload
+    const dropArea = document.getElementById('drop-area');
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropArea.classList.add('dropzone-active');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropArea.classList.remove('dropzone-active');
+      }, false);
+    });
+    dropArea.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
       }
-
-      if (pkt.l4) {
-        html += `
-          <div class="bg-white border border-neutral-border rounded-2xl p-4 space-y-2 text-xs shadow-sm">
-            <div class="font-bold text-neutral-text border-b border-neutral-border pb-1">Layer 4 (Transport Layer)</div>
-            <div class="grid grid-cols-2 gap-2 font-mono">
-              <div class="bg-neutral-bg p-2 rounded">Source Port: <strong>${pkt.l4.src_port}</strong></div>
-              <div class="bg-neutral-bg p-2 rounded">Dest Port: <strong>${pkt.l4.dst_port}</strong></div>
-              ${pkt.l4.seq !== undefined ? `<div class="bg-neutral-bg p-2 rounded">Seq: <strong>${pkt.l4.seq}</strong></div>` : ''}
-              ${pkt.l4.ack !== undefined ? `<div class="bg-neutral-bg p-2 rounded">Ack: <strong>${pkt.l4.ack}</strong></div>` : ''}
-            </div>
-          </div>
-        `;
-      }
-
-      if (pkt.l3) {
-        html += `
-          <div class="bg-white border border-neutral-border rounded-2xl p-4 space-y-2 text-xs shadow-sm">
-            <div class="font-bold text-neutral-text border-b border-neutral-border pb-1">Layer 3 (Network Layer)</div>
-            <div class="grid grid-cols-2 gap-2 font-mono">
-              <div class="bg-neutral-bg p-2 rounded">Source IP: <strong>${pkt.l3.src_ip}</strong></div>
-              <div class="bg-neutral-bg p-2 rounded">Dest IP: <strong>${pkt.l3.dst_ip}</strong></div>
-              <div class="bg-neutral-bg p-2 rounded">TTL: <strong>${pkt.l3.ttl || 64}</strong></div>
-              <div class="bg-neutral-bg p-2 rounded">Protocol: <strong>${pkt.l3.protocol}</strong></div>
-            </div>
-          </div>
-        `;
-      }
-
-      if (pkt.hex_dump) {
-        html += `
-          <div class="bg-white border border-neutral-border rounded-2xl p-4 space-y-2 text-xs shadow-sm">
-            <div class="font-bold text-neutral-text border-b border-neutral-border pb-1">Raw Hex Dump</div>
-            <div class="bg-stone-900 text-stone-200 p-3 rounded-xl font-mono text-[11px] overflow-x-auto max-h-48">
-              ${(pkt.hex_dump.lines || []).map(ln => `
-                <div class="flex gap-4">
-                  <span class="text-peach-400">${ln.offset}</span>
-                  <span class="flex-1">${ln.hex}</span>
-                  <span class="text-emerald-400">${ln.ascii}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }
-
-      desk.innerHTML = html;
-    }
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       loadSample('web_browsing_full.pcap');

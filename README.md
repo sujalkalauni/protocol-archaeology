@@ -57,38 +57,48 @@ protocol-archaeology/
 │   └── templates/
 │       └── index.html          # Frontend dashboard
 ├── Dockerfile                  # Container definition
-├── docker-compose.yml          # Docker service orchestrator
-├── .gitignore                  # Git repository exclusion rules
-└── README.md                   # System documentation
+├── run.py                  # One-click launcher (auto-installs & opens browser)
+├── run.bat                 # Windows double-click runner
+├── EASY_EXPLANATION.md     # Presentation, Viva & 1-minute explanation guide
+├── docker-compose.yml      # Optional Docker orchestrator
+├── .gitignore              # Git repository exclusion rules
+└── README.md               # System documentation
 ```
 
 ---
 
-## Quick Start Guide
+## 🚀 Quick Start (1 Simple Step!)
 
-### Prerequisites
-- Python 3.10 or higher
-- pip
+### Option A: 1-Click Python Runner (Recommended)
 
-### 1. Run with Python locally
+Just run:
+```bash
+python run.py
+```
+*(On Windows, you can also simply double-click **`run.bat`**)*
+
+**What this does automatically:**
+1. Checks and installs any missing dependencies (`fastapi`, `uvicorn`, `scapy`, etc.).
+2. Starts the server at `http://localhost:8000`.
+3. Automatically opens your default web browser to the dashboard!
+
+---
+
+### Option B: Manual Startup
 
 ```bash
-# 1. Install dependencies
 pip install -r backend/requirements.txt
-
-# 2. Run the FastAPI development server
 python -m uvicorn backend.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open your web browser and navigate to `http://localhost:8000`.
+---
 
-### 2. Run with Docker Compose
+## 🎓 Need to Explain This Project for a Viva or Demo?
 
-```bash
-docker-compose up --build
-```
-
-Access the dashboard at `http://localhost:8000`.
+Check out **[EASY_EXPLANATION.md](file:///s:/networks%20project/EASY_EXPLANATION.md)** for:
+- 1-minute elevator pitch you can read aloud.
+- Plain-English breakdown of the 5 story chapters.
+- Top Viva / interview questions with concise 1-line answers.
 
 ---
 
